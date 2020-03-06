@@ -59,8 +59,8 @@ def init_main_args():
         metavar="rules",
         type=str,
         nargs=1,
-        default=["tfilf"],
-        choices=["tfidf", "tfilf", "length", "tf"],
+        default=["team"],
+        choices=["team",],
         help="Predefined rules to extract triples from templates.",
     )
     parser.add_argument(

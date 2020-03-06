@@ -1,3 +1,4 @@
+from .rules import registry as rules_registry
 from .preprocess import registry as preprocess_registry
 from .preprocess.utils import load_processed_templates
 from .utils import (
@@ -32,7 +33,9 @@ def main():
     # Load preprocessed templates from file
     templates = load_processed_templates(params)
     # Run rules triples extraction
-
+    rules_extractor = rules_registry.get_rules_extractor(params['rules'])
+    rule_extractions = rules_extractor(templates)
+    print(rule_extractions)
     # Run openie triples extraction
 
     # Run evaluation
