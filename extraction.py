@@ -1,4 +1,6 @@
+from .openie import registry as openie_registry
 from .rules import registry as rules_registry
+from .rules.utils import save_remaining
 from .preprocess import registry as preprocess_registry
 from .preprocess.utils import load_processed_templates
 from .utils import (
@@ -33,11 +35,16 @@ def main():
     # Load preprocessed templates from file
     templates = load_processed_templates(params)
     # Run rules triples extraction
-    rules_extractor = rules_registry.get_rules_extractor(params['rules'])
-    rule_extractions = rules_extractor(templates)
-    print(rule_extractions)
+    rules_extractor = rules_registry.get_extractor(params['rules'])
+    rule_triples, rule_remaining = rules_extractor(templates)
+    remaining_dir = save_remaining(rule_remaining, params['base_dir'])
     # Run openie triples extraction
-
+    openie_extractor = openie_registry.get_extractor(params['openie'])
+    oie_triples, oie_remaining = openie_extractor(remaining_dir, 'triples.txt')
+    print(len(oie_triples))
+    print(oie_triples)
+    print(len(oie_remaining))
+    print(oie_remaining)
     # Run evaluation
 
 

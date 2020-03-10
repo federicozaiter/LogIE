@@ -79,8 +79,8 @@ def init_main_args():
         metavar="openie",
         type=str,
         nargs=1,
-        # default=["predpatt"],
-        choices=["predpatt", "openie5"],
+        default=["stanford"],
+        choices=["stanford", "openie5"],
         help="OpenIE approach to be used for triple extraction.",
     )
     parser.add_argument(
@@ -108,7 +108,7 @@ def parse_main_args(args):
         "base_dir": args.base_dir[0],
         "templates_type": args.templates_type[0],
         "rules": args.rules[0],
-        # "openie": args.openie[0],
+        "openie": args.openie[0],
     }
     if args.templates:
         params["templates"] = os.path.normpath(args.templates[0])
