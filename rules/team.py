@@ -75,7 +75,7 @@ def pre_rules(template):
                         split_output.append(remaining)
                 else:
                     split_output.append(power_strip(subpart))
-    return split_output, triples
+    return triples, split_output
 
 
 @register("team")
@@ -84,7 +84,10 @@ def triple_rules_extractor(templates):
     Runs triples extraction rules.
     """
     # TODO: may want to make this a separate function in utils and pass pre_rules
-    result = {}
+    triples = {}
+    remaining = {}
     for idx, template in templates.items():
-        result[idx] = pre_rules(template)
-    return result
+        result = pre_rules(template)
+        triples[idx] = result[0]
+        remaining[idx] = result[1]
+    return triples, remaining

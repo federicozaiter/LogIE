@@ -14,6 +14,6 @@ def register(name):
     return add_to_dict
 
 
-def get_rules_extractor(data_src):
+def get_extractor(data_src):
     """Fetches the triple extraction rules function"""
     return _RULES[data_src]
