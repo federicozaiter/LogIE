@@ -40,6 +40,9 @@ class Extraction:
         if self.arg2:
             pprint.append(self.arg2)
         return str(tuple(pprint))
+    
+    def __repr__(self):
+        return self.__str__()
 
     def __eq__(self, other):
         if isinstance(other, Extraction):
@@ -65,12 +68,16 @@ class Extraction:
 def main():
     one = Extraction('changed state to', arg1='VAR1', arg2='up',
                      sentence="Vlan-interface VAR1 changed state to up")
+    two = Extraction('changed', arg1='VAR1', arg2='up',
+                     sentence="Vlan-interface VAR1 changed state to up")
     gt = Extraction.fromTuple(('VAR1', 'changed to', 'up'),
                      sentence="Vlan-interface VAR1 changed state to up")
     
     print(one, gt)
     print(one == gt)
-    print(bool(set([one]) & set([gt])))
+    a, b = set([one, two]), set([gt, two]) 
+    print(a, b)
+    print(a and b)
     
 
 

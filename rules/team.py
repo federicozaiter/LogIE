@@ -1,6 +1,7 @@
 from .registry import register
 from .utils import power_strip
 import re
+from ..oie_extraction.extraction import Extraction
 
 
 equals_triple_pattern = re.compile(r'([-\w\d\s]+)=\s*(VAR\d+)')
@@ -8,7 +9,13 @@ colon_triple_pattern = re.compile(r'([-\w\d\s]+):\s*(VAR\d+)')
 def extract_triples_pattern(line, pattern=equals_triple_pattern):
     triples = []
     for name, var in re.findall(pattern, line):
-        triples.append((power_strip(name), 'is', var))
+        extraction = Extraction(
+            arg1=power_strip(name),
+            pred='is',
+            arg2=var,
+            sentence=line
+        )
+        triples.append(extraction)
     return triples
 
 
