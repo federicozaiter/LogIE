@@ -1,4 +1,6 @@
 import os
+import json
+from .oie_extraction.extraction import Extraction
 
 
 def file_handling(params):
@@ -28,3 +30,24 @@ def print_params(params):
         print("\t{:>13}: {}".format(param, value))
     print()
     print("-" * 80)
+
+
+def load_ground_truth(filepath):
+    with open(filepath, 'r') as f:
+        gt = json.load(f)
+    for idx in gt:
+        sentence = gt[idx][0]
+        triples = gt[idx][1]
+        if triples:
+            triples = [Extraction.fromTuple(tup, sentence=sentence)
+            for tup in triples]
+        gt[idx] = triples
+    return gt
+
+
+def combine_extractions(one, two):
+    all_keys = set(one) or set(two)
+    combined = {}
+    for key in all_keys:
+        combined[key] = one.get(key, []) + two.get(key, [])
+    return combined
