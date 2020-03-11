@@ -68,8 +68,8 @@ def init_main_args():
         metavar="evaluation",
         type=str,
         nargs='+',
-        # default=["heluheng"],
-        choices=["heluheng",
+        default=["he"],
+        choices=["he",
                  "bleu",
                  ],
         help="Approach to be used for triplets evaluation.",
@@ -110,6 +110,9 @@ def parse_main_args(args):
         "rules": args.rules[0],
         "openie": args.openie[0],
     }
+
+    if args.ground_truth:
+        params["ground_truth"] = os.path.normpath(args.ground_truth[0])
     if args.templates:
         params["templates"] = os.path.normpath(args.templates[0])
     if args.processed_templates:
