@@ -136,3 +136,6 @@ dmypy.json
 
 # experiments output
 output/
+
+#visual studio code
+.vscode/
