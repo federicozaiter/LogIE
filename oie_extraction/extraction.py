@@ -73,11 +73,13 @@ def main():
     gt = Extraction.fromTuple(('VAR1', 'changed to', 'up'),
                      sentence="Vlan-interface VAR1 changed state to up")
     
-    print(one, gt)
+    print(one, two, gt)
+    print(hash(one), hash(two), hash(gt))
     print(one == gt)
     a, b = set([one, two]), set([gt, two]) 
     print(a, b)
     print(a and b)
+    print(two in a, two in b)
     
 
 
