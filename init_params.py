@@ -70,9 +70,11 @@ def init_main_args():
         nargs='+',
         default=["he"],
         choices=["he",
+                 "redundancy",
+                 "counts",
                  "bleu",
                  ],
-        help="Approach to be used for triplets evaluation.",
+        help="Triples extraction evaluation metrics.",
     )
     parser.add_argument(
         "--openie",

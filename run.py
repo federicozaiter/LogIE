@@ -46,9 +46,9 @@ def main():
     global_result = combine_extractions(oie_triples, rule_triples)
     # Run evaluation
     ground_truth = load_ground_truth(params['ground_truth'])
-    metric = eval_registry.get_eval_metric(params['evaluation'][0])
-    precision, recall, f1 = metric(global_result, ground_truth)
-    print(f'precision: {precision}, recall: {recall}, f1: {f1}')
+    for eval_metric in params['evaluation']:
+        run_metric = eval_registry.get_eval_metric(eval_metric)
+        run_metric(global_result, ground_truth)
 
 
 if __name__ == "__main__":
