@@ -40,7 +40,7 @@ def main():
     rule_triples, rule_remaining = rules_extractor(templates)
     # Run openie triples extraction
     openie_extractor = openie_registry.get_extractor(params['openie'])
-    oie_triples, oie_remaining = openie_extractor(rule_remaining, 'triples.txt')
+    oie_triples, oie_remaining = openie_extractor(rule_remaining, './triples.txt')
     global_result = combine_extractions(oie_triples, rule_triples)
     # Run evaluation
     ground_truth = load_ground_truth(params['ground_truth'])

@@ -17,7 +17,7 @@ def parse_triples_reverb_format(lines):
         extraction = Extraction.fromTuple(
             triple,
             sentence=line[12],
-            confidence=line[11]
+            confidence=float(line[11])
             )
         if idx in result:
             result[idx].append(extraction)
@@ -57,13 +57,6 @@ def save_remaining(remaining, output_file):
 
 @register('stanford')
 def extract_triples(input_remaining, output):
-    config = configparser.ConfigParser()
-    config_path = os.path.join(
-        os.path.dirname(__file__),
-        'openie.ini',
-    )
-    config.read(config_path)
-    jars_dir = os.path.normpath(config['Stanford']['dir'])
     # the java app uses a file as an input so the remaining input is
     # saved into a temporary file 
     temp_source = './temp_remaining.txt'
@@ -77,6 +70,13 @@ def extract_triples(input_remaining, output):
     # per line in the input file
     clean_temp_file(temp_file_name)
     # parsing config
+    config = configparser.ConfigParser()
+    config_path = os.path.join(
+        os.path.dirname(__file__),
+        'openie.ini',
+    )
+    config.read(config_path)
+    jars_dir = os.path.normpath(config['Stanford']['dir'])
     memory = config['Stanford']['memory']
     program = config['Stanford']['program']
     # checkout https://github.com/stanfordnlp/CoreNLP/issues/789
@@ -111,6 +111,6 @@ def extract_triples(input_remaining, output):
             remaining_output[actual_idx] = stanford_remaining.get(str(i), [])
         return triples_output, remaining_output
     else:
-        print("Standford CoreNLP OpenIE FAILED")
+        raise RuntimeError("Standford CoreNLP OpenIE FAILED")
     # removing the temporary file that was created
     os.remove(temp_source)

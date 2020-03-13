@@ -26,7 +26,7 @@ def get_triples(extractions):
             triple = Extraction.fromTuple(
                 tup,
                 sentence=extraction['sentence'],
-                confidence=extraction['confidence']
+                confidence=float(extraction['confidence'])
                 )
             triples.append(triple)
     return triples
