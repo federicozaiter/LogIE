@@ -72,7 +72,6 @@ def init_main_args():
         choices=["he",
                  "redundancy",
                  "counts",
-                 "bleu",
                  ],
         help="Triples extraction evaluation metrics.",
     )

@@ -19,4 +19,5 @@ def eval(results, ground_truth):
     precision = num_ok / num_extractions
     recall = num_ok / num_gt
     f1 = 2 * (precision * recall) / (precision + recall)
-    print(f'Precision: {precision}, Recall: {recall}, F1: {f1}')
+    f2 = 5 * (precision * recall) / (4 * precision + recall)
+    print(f'Precision: {precision}, Recall: {recall}, F1: {f1}, F2: {f2}')
