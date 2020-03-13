@@ -16,20 +16,21 @@ class Extraction:
                 return token.text
         return None
 
-    def __init__(self, pred, arg1=None, arg2=None, sentence=None):
+    def __init__(self, pred, arg1=None, arg2=None, sentence=None, confidence=None):
         self.pred = pred
         self.arg1 = arg1
         self.arg2 = arg2
         self.sentence = sentence
+        self.confidence = confidence
 
     @classmethod
-    def fromTuple(cls, tup, sentence=None):
+    def fromTuple(cls, tup, sentence=None, confidence=None):
         if len(tup) == 1:
-            return cls(tup[0], sentence=sentence)
+            return cls(tup[0], sentence=sentence, confidence=None)
         elif len(tup) == 2:
-            return cls(tup[1], arg1=tup[0], sentence=sentence)
+            return cls(tup[1], arg1=tup[0], sentence=sentence, confidence=None)
         elif len(tup) == 3:
-            return cls(tup[1], arg1=tup[0], arg2=tup[2], sentence=sentence)
+            return cls(tup[1], arg1=tup[0], arg2=tup[2], sentence=sentence, confidence=None)
         raise ValueError("The tuple should have one to three elements.")
 
     def __str__(self):
