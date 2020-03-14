@@ -46,7 +46,7 @@ def extract_triples(input_remaining, output):
         extractor.extract("This line checks if the server is running.")
     except Exception as e:
         print(e)
-        print("OpenIE5 may not have been initialized, initializing now...")
+        print("OpenIE5 may not have been initialized")
         jar_dir = os.path.normpath(config['OpenIE5']['dir'])
         jar = os.path.join(
             jar_dir,
@@ -60,10 +60,9 @@ def extract_triples(input_remaining, output):
             "--httpPort", f"{port}",
             "--binary",  # the output is binary (arg1, rel, arg2)
             ]
-        print(command)
-        p = subprocess.Popen(command,
-                             creationflags=subprocess.CREATE_NEW_CONSOLE)
-        input("Press Enter to continue once it's initialized...")
+        print("Please run the following command then restart the process:")
+        print(' '.join(command))
+        exit()
     
     triples = {}
     remaining = {}
