@@ -59,7 +59,6 @@ def init_main_args():
         metavar="rules",
         type=str,
         nargs=1,
-        default=["team"],
         choices=["team",],
         help="Predefined rules to extract triples from templates.",
     )
@@ -108,10 +107,10 @@ def parse_main_args(args):
         "force": args.force,
         "base_dir": args.base_dir[0],
         "templates_type": args.templates_type[0],
-        "rules": args.rules[0],
         "openie": args.openie[0],
     }
-
+    if args.rules:
+        params["rules"] = args.rules[0]
     if args.ground_truth:
         params["ground_truth"] = os.path.normpath(args.ground_truth[0])
     if args.templates:

@@ -36,11 +36,16 @@ def main():
     # Load preprocessed templates from file
     templates = load_processed_templates(params)
     # Run rules triples extraction
-    rules_extractor = rules_registry.get_extractor(params['rules'])
-    rule_triples, rule_remaining = rules_extractor(templates)
+    if 'rules' in params:
+        rules_extractor = rules_registry.get_extractor(params['rules'])
+        rule_triples, rule_remaining = rules_extractor(templates)
+        remaining = rule_remaining
+    else:
+        rule_triples = {}
+        remaining = {idx:[template] for idx, template in templates.items()}
     # Run openie triples extraction
     openie_extractor = openie_registry.get_extractor(params['openie'])
-    oie_triples, oie_remaining = openie_extractor(rule_remaining, './triples.txt')
+    oie_triples, oie_remaining = openie_extractor(remaining, './triples.txt')
     global_result = combine_extractions(oie_triples, rule_triples)
     # Run evaluation
     ground_truth = load_ground_truth(params['ground_truth'])
