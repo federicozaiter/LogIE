@@ -19,6 +19,17 @@ def extract_triples_pattern(line, pattern=equals_triple_pattern):
     return triples
 
 
+cli_variable_triple_pattern = re.compile(r'--(\S+)\s*(\S*)')
+def extract_cli_triples(line):
+    """Wraps the triple pattern extractor to allow for variables that
+    are just flags. """
+    triples = extract_triples_pattern(line, cli_variable_triple_pattern)
+    for triple in triples:
+        if not triple.arg2:
+            triple.arg2 = 'set'
+    return triples
+
+
 # pattern to extract all parts within parentheses that contain a colon ":" or an equals "=" keeping what's inside
 subtract_parentheses_pattern = re.compile(r'\((.*[:\=].*)\)')
 def subtract_parentheses(line):
@@ -32,13 +43,19 @@ def subtract_parentheses(line):
 # this case is a colon that's not followed by a variable
 colon_for_details_pattern = re.compile(r':(?:(?!\s*VAR))')
 
-
 #splitting by full stop and colon where applicable
 def pre_rules(template):
     split_output = []
     triples = []
     template = power_strip(template)
     parts = []
+
+    # Checking for CLI formatted variables
+    if "--" in template:
+        triples_aux = extract_triples_pattern(template, pattern=cli_variable_triple_pattern)
+        triples.extend(triples_aux)
+        template = power_strip(re.sub(cli_variable_triple_pattern, '', template))
+
     # Splitting by punctuation and subtracting parentheses where applicable
     for part in re.split(r'\.|;', template):
         if re.search(r'[\(\)]', part):
