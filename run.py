@@ -2,13 +2,12 @@ from .evaluation import registry as eval_registry
 from .openie import registry as openie_registry
 from .rules import registry as rules_registry
 from .preprocess import registry as preprocess_registry
-from .preprocess.utils import load_processed_templates
 from .utils import (
     file_handling,
     print_params,
 )
 from .init_params import init_main_args, parse_main_args
-from .utils import load_ground_truth, combine_extractions
+from .utils import combine_extractions
 
 
 def init_args():
@@ -29,12 +28,9 @@ def main():
     params = parse_args(init_args())
     print_params(params)
     file_handling(params)
-    # Preprocess templates
-    if 'templates' in params:
-        preprocess = preprocess_registry.get_preprocessor(params['templates_type'])
-        preprocess(params)
-    # Load preprocessed templates from file
-    templates = load_processed_templates(params)
+    # Load data: templates and ground truth for evaluation
+    preprocess_data = preprocess_registry.get_preprocessor(params['templates_type'])
+    templates, ground_truth = preprocess_data(params)
     # Run rules triples extraction
     if 'rules' in params:
         rules_extractor = rules_registry.get_extractor(params['rules'])
@@ -47,8 +43,8 @@ def main():
     openie_extractor = openie_registry.get_extractor(params['openie'])
     oie_triples, oie_remaining = openie_extractor(remaining, './triples.txt')
     global_result = combine_extractions(oie_triples, rule_triples)
+    print(global_result)
     # Run evaluation
-    ground_truth = load_ground_truth(params['ground_truth'])
     for eval_metric in params['evaluation']:
         run_metric = eval_registry.get_eval_metric(eval_metric)
         run_metric(global_result, ground_truth)
