@@ -6,6 +6,7 @@ import subprocess
 from .utils import text_file_to_list
 import re
 
+
 def run_clausie(input_source, output):
     config = configparser.ConfigParser()    
     config_path = os.path.join(
