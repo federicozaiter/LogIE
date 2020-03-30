@@ -1,6 +1,8 @@
 import re
 from tqdm import tqdm
 from ..decorators import print_step
+import json
+from ..oie_extraction.extraction import Extraction
 
 
 class Repl:
@@ -12,25 +14,29 @@ class Repl:
 
 
 @print_step
-def process_templates(input_source, output, process_line=None):
-    with open(output, "w", encoding='latin-1') as f:
-        # counting first to show progress with tqdm
-        with open(input_source, 'r', encoding='latin-1') as IN:
-            line_count = sum(1 for line in IN)
-        with open(input_source, 'r', encoding='latin-1') as IN:
-                results = map(process_line, IN)
-                f.writelines(tqdm(results, total=line_count))
-
-
-@print_step
-def load_processed_templates(params):
-    templates_path = params['processed_templates']
+def process_templates_json(input_source, process_line=None):
+    with open(input_source, 'r') as f:
+        gt = json.load(f)
     templates = {}
-    with open(templates_path, 'r', encoding='latin-1') as IN:
-        line_count = sum(1 for line in IN)
-    with open(templates_path, 'r', encoding='latin-1') as IN:
-        for line in tqdm(IN, total=line_count):
-            line = line.strip()
-            idx, template = line.split('\t')
-            templates[idx] = template
-    return templates
+    for idx in gt:
+        sentence = process_line(gt[idx][0])
+        triples = gt[idx][1]
+        if triples:
+            triples = [Extraction.fromTuple(tup, sentence=sentence)
+            for tup in triples]
+        gt[idx] = triples
+        templates[idx] = sentence
+    return templates, gt
+
+
+brackets = re.compile(r'[\[\]\{\}]') # \(\)
+def remove_brackets(line):
+    return re.sub(brackets, ' ', line).strip()
+
+
+# Some variables use underscores which we want to keep so we only remove
+# the ones from longer sentences
+underscores = re.compile(r'([\w\d]+_[\w\d]+){3,}')
+def remove_underscores(match):
+    group = match.group()
+    return group.replace('_', ' ')

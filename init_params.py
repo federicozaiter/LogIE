@@ -30,20 +30,6 @@ def init_main_args():
         help="base output directory for output files",
     )
     parser.add_argument(
-        "--ground_truth",
-        metavar="ground_truth",
-        type=str,
-        nargs=1,
-        help="Ground truth file path for evaluation.",
-    )
-    parser.add_argument(
-        "--processed_templates",
-        metavar="processed_templates",
-        type=str,
-        nargs=1,
-        help="input processed_templates file path and output for templates preprocessing",
-    )
-    parser.add_argument(
         "--templates_type",
         metavar="templates_type",
         type=str,
@@ -51,6 +37,7 @@ def init_main_args():
         default=["original"],
         choices=[
             "original",
+            "open_source",
             ],
         help="Input type of templates.",
     )
@@ -67,7 +54,7 @@ def init_main_args():
         metavar="evaluation",
         type=str,
         nargs='+',
-        default=["he"],
+        default=[],
         choices=["he",
                  "redundancy",
                  "counts",
@@ -84,12 +71,6 @@ def init_main_args():
         help="OpenIE approach to be used for triple extraction.",
     )
     parser.add_argument(
-        "--force",
-        action="store_true",
-        default=False,
-        help="Force overwriting previous output.",
-    )
-    parser.add_argument(
         "--id",
         metavar="id",
         type=str,
@@ -104,27 +85,14 @@ def parse_main_args(args):
     """Parse provided args for runtime configuration."""
     params = {
         "evaluation": args.evaluation,
-        "force": args.force,
         "base_dir": args.base_dir[0],
         "templates_type": args.templates_type[0],
         "openie": args.openie[0],
     }
     if args.rules:
         params["rules"] = args.rules[0]
-    if args.ground_truth:
-        params["ground_truth"] = os.path.normpath(args.ground_truth[0])
     if args.templates:
         params["templates"] = os.path.normpath(args.templates[0])
-    if args.processed_templates:
-        params['processed_templates'] = os.path.normpath(
-            args.processed_templates[0]
-            )
-    else:
-        params['processed_templates'] = os.path.join(
-            params['base_dir'],
-            "preprocessed_templates",
-            f"{params['templates_type']}.txt"
-        )
     if args.id:
         params['id'] = args.id[0]
     else:
