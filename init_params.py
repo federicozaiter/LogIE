@@ -29,18 +29,17 @@ def init_main_args():
         default=[base_dir_default],
         help="base output directory for output files",
     )
-    type_options = [
-            "original",
-            "open_source",
-            ],
     parser.add_argument(
         "--templates_type",
         metavar="templates_type",
         type=str,
         nargs=1,
         default=["original"],
-        choices=type_options,
-        help=f"Input type of templates. Choose from {type_options}.",
+        choices=[
+            "original",
+            "open_source",
+            ],
+        help="Input type of templates.",
     )
     parser.add_argument(
         "--rules",
@@ -50,28 +49,26 @@ def init_main_args():
         choices=["team",],
         help="Predefined rules to extract triples from templates.",
     )
-    evaluation_choices = ["he",
-                 "redundancy",
-                 "counts",
-                 ],
     parser.add_argument(
         "--evaluation",
         metavar="evaluation",
         type=str,
         nargs='+',
         default=[],
-        choices=evaluation_choices,
-        help=f"Triples extraction evaluation metrics. Choose from {evaluation_choices}.",
+        choices=["he",
+                 "redundancy",
+                 "counts",
+                 ],
+        help="Triples extraction evaluation metrics.",
     )
-    openie_choices = ["stanford", "openie5", "ollie", "predpatt", "clausie"]
     parser.add_argument(
         "--openie",
         metavar="openie",
         type=str,
         nargs=1,
         default=["stanford"],
-        choices=openie_choices,
-        help=f"OpenIE approach to be used for triple extraction. Choose from {openie_choices}.",
+        choices=["stanford", "openie5", "ollie", "predpatt", "clausie"],
+        help="OpenIE approach to be used for triple extraction.",
     )
     parser.add_argument(
         "--id",
