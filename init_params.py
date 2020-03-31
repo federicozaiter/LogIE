@@ -29,17 +29,18 @@ def init_main_args():
         default=[base_dir_default],
         help="base output directory for output files",
     )
+    type_options = [
+            "original",
+            "open_source",
+            ],
     parser.add_argument(
         "--templates_type",
         metavar="templates_type",
         type=str,
         nargs=1,
         default=["original"],
-        choices=[
-            "original",
-            "open_source",
-            ],
-        help="Input type of templates.",
+        choices=type_options,
+        help=f"Input type of templates. Choose from {type_options}.",
     )
     parser.add_argument(
         "--rules",

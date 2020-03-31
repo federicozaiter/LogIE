@@ -69,7 +69,7 @@ optional arguments:
                         input raw templates file path (default: None)
   --base_dir base_dir   base output directory for output files (default: [<Project Folder>])
   --templates_type templates_type
-                        Input type of templates. (default: ['original'])
+                        Input type of templates. Choose from (['original', 'open_source'],). (default: ['original'])
   --rules rules         Predefined rules to extract triples from templates. (default: None)
   --evaluation evaluation [evaluation ...]
                         Triples extraction evaluation metrics. Choose from (['he', 'redundancy', 'counts'],).
