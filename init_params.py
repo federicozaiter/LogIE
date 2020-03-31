@@ -49,26 +49,28 @@ def init_main_args():
         choices=["team",],
         help="Predefined rules to extract triples from templates.",
     )
+    evaluation_choices = ["he",
+                 "redundancy",
+                 "counts",
+                 ],
     parser.add_argument(
         "--evaluation",
         metavar="evaluation",
         type=str,
         nargs='+',
         default=[],
-        choices=["he",
-                 "redundancy",
-                 "counts",
-                 ],
-        help="Triples extraction evaluation metrics.",
+        choices=evaluation_choices,
+        help=f"Triples extraction evaluation metrics. Choose from {evaluation_choices}.",
     )
+    openie_choices = ["stanford", "openie5", "ollie", "predpatt", "clausie"]
     parser.add_argument(
         "--openie",
         metavar="openie",
         type=str,
         nargs=1,
         default=["stanford"],
-        choices=["stanford", "openie5", "ollie", "predpatt", "clausie"],
-        help="OpenIE approach to be used for triple extraction.",
+        choices=openie_choices,
+        help=f"OpenIE approach to be used for triple extraction. Choose from {openie_choices}.",
     )
     parser.add_argument(
         "--id",
