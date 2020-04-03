@@ -5,6 +5,7 @@ import pathlib
 from shutil import copyfile
 from ..oie_extraction.extraction import Extraction
 from .utils import text_file_to_list
+import re
 
 
 def parse_triples_reverb_format(lines):
@@ -30,20 +31,19 @@ def parse_remaining_reverb_format(lines, triples):
     remaining = {}
     # use count while the idx is not the ordinal of the template
     # this is to see which templates didn't yield triples
-    count = 0
-    for line in lines:
-        if str(count) not in triples:
-            line = line.strip()#.split('\t')[1]
-            remaining[count] = [line]
-        count += 1
+    for i, line in enumerate(lines):
+        if str(i) not in triples:
+            line = line.strip()
+            remaining[i] = [line]
     return remaining
 
 
 def clean_temp_file(file_name):
     lines = text_file_to_list(file_name)
+    remove_index = re.compile(r'^\d+\t')
     with open(file_name, 'w') as f:
         for line in lines:
-            sentence = line.split('\t')[1]
+            sentence = re.sub(remove_index,'',line)
             f.write(sentence)
 
 
@@ -51,7 +51,7 @@ def save_remaining(remaining, output_file):
     with open(output_file, 'w') as remaining_f:
         for idx in remaining:
             remaining_idx = remaining[idx]
-            remaining_idx = [f'{idx}\t{line}' for line in remaining_idx]
+            remaining_idx = [f'{idx}\t{line}' for line in remaining_idx if len(line.split())>1]
             remaining_f.writelines('\n'.join((*remaining_idx,'')))
 
 
@@ -81,9 +81,12 @@ def extract_triples(input_remaining, output):
     program = config['Stanford']['program']
     # checkout https://github.com/stanfordnlp/CoreNLP/issues/789
     # to see if they fixed how to use -resolve_coref true in the command
+    # See https://stackoverflow.com/questions/35075463/corenlp-tokenizer-sentence-splitter-misbehaves-on-html-input
+    # To understand the reason why behind tokenizePerLine and eolonly
     command = f'java -{memory} -cp "{jars_dir}\\*" {program}\
         -threads 8\
-        -ssplit.newlineIsSentenceBreak always\
+        -tokenize.options tokenizePerLine\
+        -ssplit.eolonly true\
         -triple.all_nominals true -format reverb "{temp_file_name}"\
         > "{output}"'
     print(command)
@@ -101,16 +104,22 @@ def extract_triples(input_remaining, output):
         # obtaining a mapping of each line in the output triples from
         # reverb format to the original source template idx
         # note reverb outputs original line ordinal as the id instead
-        stanford_to_idx = [line.strip().split('\t')[0] for line in text_file_to_list(temp_source)]
+        stanford_to_idx = [line.split('\t')[0] for line in text_file_to_list(temp_source)]
 
         triples_output = {}
         remaining_output = {}
-        for i in range(len(stanford_to_idx)):
-            actual_idx = stanford_to_idx[i]
-            triples_output[actual_idx] = stanford_triples.get(str(i), [])
-            remaining_output[actual_idx] = stanford_remaining.get(str(i), [])
+        # the i is the line number which is how stanford indexes the triples
+        # there may be several triples from the sentence of each line
+        # from the source file we build a mapping from the line to the actual
+        # template index to gather all the triples for it
+        for i, actual_idx in enumerate(stanford_to_idx):
+            triples_output[actual_idx] = triples_output.get(actual_idx, []) + stanford_triples.get(str(i), [])
+            remaining_output[actual_idx] = remaining_output.get(actual_idx, []) + stanford_remaining.get(str(i), [])
+        # removing the temporary file that was created
+        os.remove(temp_source)
         return triples_output, remaining_output
     else:
+        # removing the temporary file that was created
+        os.remove(temp_source)
         raise RuntimeError("Standford CoreNLP OpenIE FAILED")
-    # removing the temporary file that was created
-    os.remove(temp_source)
+    
