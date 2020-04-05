@@ -65,6 +65,17 @@ class Extraction:
 
     def __hash__(self):
         return hash(self.__key())
+    
+    def __len__(self):
+        length = 0
+        if self.arg1:
+            length += 1
+        if self.pred:
+            length += 1
+        if self.arg2:
+            length += 1
+        return length
+
 
 def main():
     one = Extraction('changed state to', arg1='VAR1', arg2='up',
