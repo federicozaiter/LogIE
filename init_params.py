@@ -37,7 +37,12 @@ def init_main_args():
         default=["original"],
         choices=[
             "original",
-            "open_source",
+            "hpc",
+            "bgl",
+            "hdfs",
+            "zookeeper",
+            "proxifier",
+            "spark",
             ],
         help="Input type of templates.",
     )
@@ -46,7 +51,7 @@ def init_main_args():
         metavar="rules",
         type=str,
         nargs=1,
-        choices=["team",],
+        choices=["team", "new"],
         help="Predefined rules to extract triples from templates.",
     )
     parser.add_argument(

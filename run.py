@@ -30,20 +30,19 @@ def main():
     file_handling(params)
     # Load data: templates and ground truth for evaluation
     preprocess_data = preprocess_registry.get_preprocessor(params['templates_type'])
-    templates, ground_truth = preprocess_data(params)
+    processed_templates, ground_truth = preprocess_data(params)
     # Run rules triples extraction
     if 'rules' in params:
         rules_extractor = rules_registry.get_extractor(params['rules'])
-        rule_triples, rule_remaining = rules_extractor(templates)
+        rule_triples, rule_remaining = rules_extractor(processed_templates)
         remaining = rule_remaining
     else:
         rule_triples = {}
-        remaining = {idx:[template] for idx, template in templates.items()}
+        remaining = {idx:templates for idx, templates in processed_templates.items()}
     # Run openie triples extraction
     openie_extractor = openie_registry.get_extractor(params['openie'])
     oie_triples, oie_remaining = openie_extractor(remaining, './triples.txt')
     global_result = combine_extractions(oie_triples, rule_triples)
-    print(global_result)
     # Run evaluation
     for eval_metric in params['evaluation']:
         run_metric = eval_registry.get_eval_metric(eval_metric)
