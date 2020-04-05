@@ -4,10 +4,8 @@ import re
 from ..oie_extraction.extraction import Extraction
 
 
-# TODO: fix extractor patterns to allow for any value after the 
-# color or equals
-equals_triple_pattern = re.compile(r'([-\w\d\s]+)=\s*(VAR\d+)')
-colon_triple_pattern = re.compile(r'([-\w\d\s]+):\s*(VAR\d+)')
+equals_triple_pattern = re.compile(r'([-\w\d\s]+)=\s*([\w\d\*]+)')
+colon_triple_pattern = re.compile(r'([-\w\d\s]+):\s*([\w\d\*]+)')
 def extract_triples_pattern(line, pattern=equals_triple_pattern):
     triples = []
     for name, var in re.findall(pattern, line):
@@ -42,11 +40,44 @@ def subtract_parentheses(line):
     return result
 
 
+def pre_rules(template):
+    remaining_output = []
+    triples = []
+    template = power_strip(template)
+    parts = []
+
+    # Checking for CLI formatted variables
+    if "--" in template:
+        triples_aux = extract_triples_pattern(template, pattern=cli_variable_triple_pattern)
+        triples.extend(triples_aux)
+        template = power_strip(re.sub(cli_variable_triple_pattern, '', template))
+  
+    has_equals = "=" in template
+    has_colon = ":" in template
+    if has_equals and not has_colon:
+        # equals "=" means "is"
+        triples_aux = extract_triples_pattern(template, pattern=equals_triple_pattern)
+        triples.extend(triples_aux)
+        remaining = power_strip(re.sub(equals_triple_pattern, '', template))
+        if remaining:
+            remaining_output.append(remaining)
+    elif has_colon and not has_equals:
+        # colon ":" means "is"
+        triples_aux = extract_triples_pattern(template, pattern=colon_triple_pattern)
+        triples.extend(triples_aux)
+        remaining = power_strip(re.sub(colon_triple_pattern, '', template))
+        if remaining:
+            remaining_output.append(remaining)
+    else:
+        remaining_output.append(template)
+    return triples, remaining_output
+
+
 # this case is a colon that's not followed by a variable
 colon_for_details_pattern = re.compile(r':(?:(?!\s*VAR))')
 
 #splitting by full stop and colon where applicable
-def pre_rules(template):
+def pre_rules_old(template):
     split_output = []
     triples = []
     template = power_strip(template)
@@ -104,7 +135,7 @@ def pre_rules(template):
     return triples, split_output
 
 
-@register("team")
+@register("new")
 def triple_rules_extractor(templates):
     """
     Runs triples extraction rules.
@@ -112,8 +143,13 @@ def triple_rules_extractor(templates):
     # TODO: may want to make this a separate function in utils and pass pre_rules
     triples = {}
     remaining = {}
-    for idx, template in templates.items():
-        result = pre_rules(template)
-        triples[idx] = result[0]
-        remaining[idx] = result[1]
+    for idx, processed_templates in templates.items():
+        for part in processed_templates:
+            result = pre_rules(part)
+            if idx in triples:
+                triples[idx].extend(result[0])
+                remaining[idx].extend(result[1])
+            else:
+                triples[idx] = result[0]
+                remaining[idx] = result[1]
     return triples, remaining
