@@ -13,7 +13,7 @@ def eval(results, ground_truth):
     for idx in results:
         extractions = set(results[idx])
         gt = set(ground_truth[idx])
-        num_ok += len(gt and extractions)
+        num_ok += len(gt.intersection(extractions))
         num_extractions += len(extractions)
         num_gt += len(gt)
     precision = num_ok / num_extractions
