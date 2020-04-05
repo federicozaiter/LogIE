@@ -9,14 +9,21 @@ from .utils import (
 import re
 
 
-# this step should be done before brackets are removed
-log_type_tag_pattern = re.compile('^\[.+\]')
+bgl_tag_pattern = re.compile('^([A-Z]+\s)')
+proxifier_tag_pattern = re.compile('^[^:]+:\s*')
 def remove_log_type_tag(line):
-    return re.sub(log_type_tag_pattern, '', line)
+    line = re.sub(bgl_tag_pattern, '', line)
+    return re.sub(proxifier_tag_pattern, '', line)
 
 
-brackets_w_content_pattern = re.compile(r'\(([^\(\)]+(?:=|:)[^\(\)]+)\)')
-def subtract_brackets(line, pattern=brackets_w_content_pattern):
+def flatten(seq):
+    return [elem for elems in seq for elem in elems]
+
+
+curly_brackets_pattern = re.compile(r'\{([^\{\}]+)\}')
+square_brackets_pattern = re.compile(r'\[([^\[\]]+)\]')
+parentheses_pattern = re.compile(r'\(([^\(\)]+)\)')
+def subtract_brackets(line, pattern=parentheses_pattern):
     result = re.findall(pattern, line)
     remaining = re.sub(pattern, '', line)
     if remaining:
@@ -24,10 +31,8 @@ def subtract_brackets(line, pattern=brackets_w_content_pattern):
     return result
 
 
-# this case is a colon that's not followed by a variable
 colon_for_details_pattern = re.compile(r':(?:(?!\s*VAR))')
-
-def splitting_original(parts):
+def splitting_spark(parts):
     """Takes care of specific preprocessing of this type of logs before
     rules or OpenIE is applied to extract triples."""
     result = []
@@ -53,13 +58,16 @@ def process_line(template):
     template = remove_log_type_tag(template)
     template = re.sub(underscores, remove_underscores, template)
     template = re.sub('\*', Repl(), template)
-    parts = subtract_brackets(template)
-    parts = splitting_original(parts)
+    parts = subtract_brackets(template, curly_brackets_pattern)
+    parts = flatten(map(lambda x: subtract_brackets(x, square_brackets_pattern), parts))
+    parts = flatten(map(lambda x: subtract_brackets(x, parentheses_pattern), parts))
+    parts = map(lambda x: remove_brackets(x), parts)
+    parts = splitting_spark(parts)
     parts = split_on_punctuation(parts)
     return parts  
 
 
-@register("original")
+@register("spark")
 def preprocess_dataset(params):
     """
     Runs template preprocessing executor.

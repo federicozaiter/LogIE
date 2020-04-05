@@ -1,4 +1,9 @@
 __all__ = [
     "original",
-    "open_source",
+    "hpc",
+    "bgl",
+    "hdfs",
+    "zookeeper",
+    "proxifier",
+    "spark",
 ]

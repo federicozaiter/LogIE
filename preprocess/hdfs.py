@@ -4,19 +4,28 @@ from .utils import (
     Repl,
     remove_brackets,
     remove_underscores, underscores,
+    split_on_punctuation,
 )
 import re
 
 
+bgl_tag_pattern = re.compile('^([A-Z]+\s)')
+def remove_log_type_tag(line):
+    return re.sub(bgl_tag_pattern, '', line)
+
+
 def process_line(template):
     template = template.strip()
+    template = remove_log_type_tag(template)
     template = remove_brackets(template)
     template = re.sub(underscores, remove_underscores, template)
     template = re.sub('\*', Repl(), template)
-    return template  
+    parts = template.split(":")
+    parts = split_on_punctuation(parts)
+    return parts  
 
 
-@register("open_source")
+@register("hdfs")
 def preprocess_dataset(params):
     """
     Runs template preprocessing executor.

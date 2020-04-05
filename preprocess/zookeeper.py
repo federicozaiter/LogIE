@@ -9,25 +9,14 @@ from .utils import (
 import re
 
 
-# this step should be done before brackets are removed
-log_type_tag_pattern = re.compile('^\[.+\]')
+bgl_tag_pattern = re.compile('^([A-Z]+\s)')
 def remove_log_type_tag(line):
-    return re.sub(log_type_tag_pattern, '', line)
-
-
-brackets_w_content_pattern = re.compile(r'\(([^\(\)]+(?:=|:)[^\(\)]+)\)')
-def subtract_brackets(line, pattern=brackets_w_content_pattern):
-    result = re.findall(pattern, line)
-    remaining = re.sub(pattern, '', line)
-    if remaining:
-        result.append(remaining)
-    return result
+    return re.sub(bgl_tag_pattern, '', line)
 
 
 # this case is a colon that's not followed by a variable
 colon_for_details_pattern = re.compile(r':(?:(?!\s*VAR))')
-
-def splitting_original(parts):
+def splitting_zookeeper(parts):
     """Takes care of specific preprocessing of this type of logs before
     rules or OpenIE is applied to extract triples."""
     result = []
@@ -48,18 +37,27 @@ def splitting_original(parts):
     return result
 
 
+parentheses_pattern = re.compile(r'\(([^\(\)]+)\)')
+def subtract_brackets(line, pattern=parentheses_pattern):
+    result = re.findall(pattern, line)
+    remaining = re.sub(pattern, '', line)
+    if remaining:
+        result.append(remaining)
+    return result
+
+
 def process_line(template):
     template = template.strip()
     template = remove_log_type_tag(template)
     template = re.sub(underscores, remove_underscores, template)
     template = re.sub('\*', Repl(), template)
     parts = subtract_brackets(template)
-    parts = splitting_original(parts)
+    parts = splitting_zookeeper(parts)
     parts = split_on_punctuation(parts)
-    return parts  
+    return parts 
 
 
-@register("original")
+@register("zookeeper")
 def preprocess_dataset(params):
     """
     Runs template preprocessing executor.

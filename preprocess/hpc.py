@@ -7,18 +7,16 @@ from .utils import (
     split_on_punctuation,
 )
 import re
+from functools import reduce
 
 
-# this step should be done before brackets are removed
-log_type_tag_pattern = re.compile('^\[.+\]')
-def remove_log_type_tag(line):
-    return re.sub(log_type_tag_pattern, '', line)
-
-
-brackets_w_content_pattern = re.compile(r'\(([^\(\)]+(?:=|:)[^\(\)]+)\)')
-def subtract_brackets(line, pattern=brackets_w_content_pattern):
-    result = re.findall(pattern, line)
-    remaining = re.sub(pattern, '', line)
+brackets_pattern = re.compile(r'\(([^\(\)]+)\)|\<([^\<\>]+)\>')
+def subtract_brackets(line):
+    result = re.findall(brackets_pattern, line)
+    # as there is two two groups in the pattern we need to flatten the
+    # extraction results
+    result = [group for match in result for group in match]
+    remaining = re.sub(brackets_pattern, '', line)
     if remaining:
         result.append(remaining)
     return result
@@ -26,8 +24,7 @@ def subtract_brackets(line, pattern=brackets_w_content_pattern):
 
 # this case is a colon that's not followed by a variable
 colon_for_details_pattern = re.compile(r':(?:(?!\s*VAR))')
-
-def splitting_original(parts):
+def splitting_hpc(parts):
     """Takes care of specific preprocessing of this type of logs before
     rules or OpenIE is applied to extract triples."""
     result = []
@@ -50,16 +47,15 @@ def splitting_original(parts):
 
 def process_line(template):
     template = template.strip()
-    template = remove_log_type_tag(template)
     template = re.sub(underscores, remove_underscores, template)
     template = re.sub('\*', Repl(), template)
     parts = subtract_brackets(template)
-    parts = splitting_original(parts)
+    parts = splitting_hpc(parts)
     parts = split_on_punctuation(parts)
     return parts  
 
 
-@register("original")
+@register("hpc")
 def preprocess_dataset(params):
     """
     Runs template preprocessing executor.
