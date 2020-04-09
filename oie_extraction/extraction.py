@@ -77,6 +77,72 @@ class Extraction:
         return length
 
 
+class UnstructuredExtraction:
+    """(predicate, [*args])"""
+    
+    __nlp = spacy.load('en_core_web_sm')
+
+    @staticmethod
+    def __get_root(sentence):
+        if sentence is None:
+            return None
+        doc = Extraction.__nlp(sentence)
+        for token in doc:
+            if token.dep_ == 'ROOT':
+                return token.text
+        return None
+
+    def __init__(self, pred, args=None, sentence=None, confidence=None):
+        self.pred = pred
+        self.args = args
+        self.sentence = sentence
+        self.confidence = confidence
+
+    @classmethod
+    def fromExtraction(cls, extraction):
+        args = extraction.arg1.split() if extraction.arg1 else []
+        args.extend(extraction.arg2.split() if extraction.arg2 else [])
+        return cls(
+            extraction.pred,
+            args=args,
+            sentence=extraction.sentence,
+            confidence=extraction.confidence
+            )
+
+    def __str__(self):
+        return str((self.pred, self.args))
+    
+    def __repr__(self):
+        return self.__str__()
+
+    def __eq__(self, other):
+        if isinstance(other, UnstructuredExtraction):
+            get_root = UnstructuredExtraction.__get_root
+            return (
+                get_root(self.pred) == get_root(other.pred)
+                and self.args == other.args
+            )
+        return NotImplemented
+
+    def __key(self):
+        get_root = Extraction.__get_root
+        return (
+            get_root(self.pred),
+            self.args,
+            )
+
+    def __hash__(self):
+        return hash(self.__key())
+    
+    def __len__(self):
+        length = 0
+        if self.pred:
+            length += 1
+        if self.args:
+            length += len(self.args)
+        return length
+
+
 def main():
     one = Extraction('changed state to', arg1='VAR1', arg2='up',
                      sentence="Vlan-interface VAR1 changed state to up")
