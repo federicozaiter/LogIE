@@ -4,4 +4,5 @@ __all__ = [
     "ollie",
     "predpatt",
     "clausie",
+    "props",
 ]

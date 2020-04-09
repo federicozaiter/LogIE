@@ -72,7 +72,7 @@ def init_main_args():
         type=str,
         nargs=1,
         default=["stanford"],
-        choices=["stanford", "openie5", "ollie", "predpatt", "clausie"],
+        choices=["stanford", "openie5", "ollie", "predpatt", "clausie", "props"],
         help="OpenIE approach to be used for triple extraction.",
     )
     parser.add_argument(
