@@ -23,7 +23,7 @@ def print_params(params):
 
 
 def combine_extractions(one, two):
-    all_keys = set(one) or set(two)
+    all_keys = set(one).union(set(two))
     combined = {}
     for key in all_keys:
         combined[key] = one.get(key, []) + two.get(key, [])
