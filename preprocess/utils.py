@@ -25,8 +25,7 @@ def process_templates_json(input_source, process_line=None):
         if triples:
             triples = [Extraction.fromTuple(tup, sentence=sentence)
             for tup in triples]
-        # TODO: Review which triples from the ground truth are kept and how
-        gt[idx] = [triple for triple in triples if triple.pred and len(triple)>2]
+        gt[idx] = [triple for triple in triples if triple.pred]
         templates[idx] = [part for part in processed_parts if part] 
     return templates, gt
 

@@ -30,14 +30,14 @@ def module_from_file(module_name, file_path):
     print(spec.name)
     return module
 
-
+#pylint: disable=unresolved-import
 def get_props_func():
     """Imports PropS main function from its module"""
     global config
     module_from_file('external_props',config['PropS']['props_main_dir'])
     from external_props.applications.parse_props import main as props_func
     return props_func
-    
+#pylint: enable=unresolved-import    
 
 def get_props_args(parsed_input_path):
     """Builds the arguments used for the imported PropS main function"""

@@ -56,7 +56,7 @@ def extract_triples(input_remaining, output):
         command = ["java",
             f"-{memory}",
             "-XX:+UseConcMarkSweepGC",
-            "-jar", f"{jar}",
+            "-jar", f'"{jar}"',
             "--httpPort", f"{port}",
             "--binary",  # the output is binary (arg1, rel, arg2)
             ]
@@ -72,7 +72,7 @@ def extract_triples(input_remaining, output):
             try:
                 extractions = extractor.extract(line)
             except Exception as e:
-                print(e)
+                pass
             finally:
                 extracted_triples = get_triples(extractions)
                 # this way each idx in triples has an emptly list if no

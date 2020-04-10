@@ -26,14 +26,15 @@ class Extraction:
     @classmethod
     def fromTuple(cls, tup, sentence=None, confidence=None):
         if len(tup) == 1:
-            return cls(tup[0], sentence=sentence, confidence=None)
+            return cls(tup[0], arg1="", arg2="", sentence=sentence, confidence=None)
         elif len(tup) == 2:
-            return cls(tup[1], arg1=tup[0], sentence=sentence, confidence=None)
+            return cls(tup[1], arg1=tup[0], arg2="", sentence=sentence, confidence=None)
         elif len(tup) == 3:
             return cls(tup[1], arg1=tup[0], arg2=tup[2], sentence=sentence, confidence=None)
         raise ValueError("The tuple should have one to three elements.")
 
     def __str__(self):
+        return str((self.arg1, self.pred, self.arg2))
         pprint = []
         if self.arg1:
             pprint.append(self.arg1)
