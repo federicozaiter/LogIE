@@ -7,7 +7,7 @@ from .utils import (
     print_params,
 )
 from .init_params import init_main_args, parse_main_args
-from .utils import combine_extractions
+from .utils import combine_extractions, unstructure_extractions
 
 
 def init_args():
@@ -43,6 +43,10 @@ def main():
     openie_extractor = openie_registry.get_extractor(params['openie'])
     oie_triples, oie_remaining = openie_extractor(remaining, './triples.txt')
     global_result = combine_extractions(oie_triples, rule_triples)
+    # PropS uses a different structure so we change it
+    if params['openie'] == 'props' or 'lexical' in params['evaluation']:
+        unstructure_extractions(ground_truth)
+        unstructure_extractions(global_result)
     # Run evaluation
     for eval_metric in params['evaluation']:
         run_metric = eval_registry.get_eval_metric(eval_metric)
