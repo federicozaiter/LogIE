@@ -1,6 +1,6 @@
 import os
 import json
-from .oie_extraction.extraction import Extraction
+from .oie_extraction.extraction import Extraction, UnstructuredExtraction
 
 
 def file_handling(params):
@@ -28,3 +28,14 @@ def combine_extractions(one, two):
     for key in all_keys:
         combined[key] = one.get(key, []) + two.get(key, [])
     return combined
+
+
+def unstructure_extractions(extractions):
+    for idx in extractions:
+        unstructured = []
+        for ext in extractions[idx]:
+            if hasattr(ext, 'args'):
+                unstructured.append(ext)
+            else:
+                unstructured.append(UnstructuredExtraction.fromExtraction(ext))
+        extractions[idx] = unstructured
