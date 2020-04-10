@@ -1,4 +1,5 @@
 from .registry import register
+from .utils import check_structured
 
 
 @register("he")
@@ -7,6 +8,9 @@ def eval(results, ground_truth):
     results and the ground truth in groups that are equivalent according
     to He's approach. Two triples are equivalent if the syntactic heads
     of their predicates and arguments match."""
+    check_structured(results)
+    check_structured(ground_truth)
+    
     num_ok = 0
     num_extractions = 0
     num_gt = 0
