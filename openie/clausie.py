@@ -54,9 +54,9 @@ def parse_clausie_triples(output_triples, line_to_idx_line):
             tup = tuple(part.strip('"') for part in tup)
             triple = Extraction.fromTuple(
                 tup=tup,
-                sentence=line_to_idx_line[int(idx)][1]
+                sentence=line_to_idx_line[int(idx) - 1][1]
             )
-            triple_id = line_to_idx_line[int(idx)][0]
+            triple_id = line_to_idx_line[int(idx) - 1][0]
             if triple_id in triples:
                 triples[triple_id].append(triple)
             else:
