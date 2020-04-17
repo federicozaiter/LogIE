@@ -31,7 +31,7 @@ def eval(results, ground_truth):
                     for w2 in result.args:
                         if w1 == w2:
                             count_match += 1
-                coverage = float(count_match) / len(gt.args)
+                coverage = count_match / len(gt.args) if gt.args else 0
 
                 # Counting differently for precision than for recall
                 # Precision is for the extracted triples and recall is
