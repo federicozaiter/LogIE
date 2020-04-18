@@ -4,6 +4,8 @@ from ..oie_extraction.extraction import Extraction
 from predpatt import PredPatt, PredPattOpts
 from predpatt.util.ud import dep_v1, postag
 from predpatt.patt import Argument
+import spacy
+__nlp = spacy.load('en_core_web_sm')
 
 
 (NORMAL, POSS, APPOS, AMOD) = ("normal", "poss", "appos", "amod")
@@ -78,6 +80,20 @@ def get_predpatt_triples(predpatt_output, line):
     triples = []
     for pred in predpatt_output.instances:
         tup = format_predicate(pred)
+        if not tup[2]:
+            # splitting predicates without arg2 where appropriate 
+            tup = list(tup)
+            doc = __nlp(tup[1])
+            split = len(tup[1])
+            for i, token in enumerate(doc):
+                if token.pos_ not in ['AUX','VERB','ADP','ADV']:
+                    split = i
+                    break
+            tup[1] = [token.text for token in doc]
+            tup[2] = ' '.join(tup[1][split:])
+            tup[1] = ' '.join(tup[1][:split])
+            if not tup[1]:
+                tup[1], tup[2] = tup[2], tup[1]
         triple = Extraction.fromTuple(
             tup=tup,
             sentence=line,
