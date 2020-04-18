@@ -5,4 +5,5 @@ __all__ = [
     "predpatt",
     "clausie",
     "props",
+    "baseline",
 ]
