@@ -8,9 +8,15 @@ from ..oie_extraction.extraction import Extraction
 class Repl:
     def __init__(self, ini=0):
         self.called = ini
-    def __call__(self, match):
+    def __call__(self, match=None):
         self.called += 1
         return f'VAR{self.called}'
+
+
+def substitute_vars(template):
+    tokens = template.strip().split()
+    namer = Repl()
+    return ' '.join([namer() if token == '*' else token for token in tokens])
 
 
 @print_step
@@ -19,12 +25,13 @@ def process_templates_json(input_source, process_line=None):
         gt = json.load(f)
     templates = {}
     for idx in gt:
-        sentence = gt[idx][0]
-        processed_parts = process_line(sentence)
+        template = substitute_vars(gt[idx][0])
+        template = re.sub(underscores, remove_underscores, template)
+        processed_parts = process_line(template)
         triples = gt[idx][1]
         if triples:
-            triples = [Extraction.fromTuple(tup, sentence=sentence)
-            for tup in triples]
+            triples = [Extraction.fromTuple(tup, sentence=template)
+                       for tup in triples]
         gt[idx] = [triple for triple in triples if triple.pred]
         templates[idx] = [part for part in processed_parts if part] 
     return templates, gt

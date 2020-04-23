@@ -1,9 +1,7 @@
 from .registry import register
 from .utils import (
     process_templates_json,
-    Repl,
     remove_brackets,
-    remove_underscores, underscores,
     split_on_punctuation,
 )
 import re
@@ -32,10 +30,7 @@ def split_on_punctuation(sentences):
     return result
 
 def process_line(template):
-    template = template.strip()
     template = remove_log_type_tag(template)
-    template = re.sub(underscores, remove_underscores, template)
-    template = re.sub('\*', Repl(), template)
     sentences = subtract_parentheses_colon(template)
     sentences = split_on_punctuation(sentences)
     return sentences  

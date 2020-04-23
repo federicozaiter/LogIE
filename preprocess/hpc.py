@@ -1,9 +1,7 @@
 from .registry import register
 from .utils import (
     process_templates_json,
-    Repl,
     remove_brackets,
-    remove_underscores, underscores,
     split_on_punctuation,
 )
 import re
@@ -46,9 +44,6 @@ def splitting_hpc(parts):
 
 
 def process_line(template):
-    template = template.strip()
-    template = re.sub(underscores, remove_underscores, template)
-    template = re.sub('\*', Repl(), template)
     parts = subtract_brackets(template)
     parts = splitting_hpc(parts)
     parts = split_on_punctuation(parts)

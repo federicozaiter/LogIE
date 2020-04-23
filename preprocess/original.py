@@ -1,9 +1,7 @@
 from .registry import register
 from .utils import (
     process_templates_json,
-    Repl,
     remove_brackets,
-    remove_underscores, underscores,
     split_on_punctuation,
 )
 import re
@@ -49,10 +47,7 @@ def splitting_original(parts):
 
 
 def process_line(template):
-    template = template.strip()
     template = remove_log_type_tag(template)
-    template = re.sub(underscores, remove_underscores, template)
-    template = re.sub('\*', Repl(), template)
     parts = subtract_brackets(template)
     parts = splitting_original(parts)
     parts = split_on_punctuation(parts)
