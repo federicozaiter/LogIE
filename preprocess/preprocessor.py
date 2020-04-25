@@ -1,0 +1,84 @@
+from abc import ABC, abstractmethod
+import json
+from ..oie_extraction.extraction import Extraction
+
+
+class BasePreprocessor(ABC):
+    """ Abstract class to be implemented by all processors.
+
+    Methods
+    -------
+    process_templates(self, **kwargs)
+        Abstract method for the subclass to implement how the templates
+        of the corresponding type should be processed.
+    process_logs(self, **kwargs)
+        Idem for logs.
+    """
+    def __init__(self, params):
+        self.params = params
+
+    @abstractmethod
+    def _process_template(self, log):
+        """Processes a single template line uniquely to each log type
+        on top of what process_templates function does."""
+        pass
+
+    @abstractmethod
+    def _process_log(self, log):
+        """Processes a single log line."""
+        pass
+    
+    class Repl:
+        def __init__(self, ini=0):
+            self.called = ini
+        def __call__(self, match=None):
+            self.called += 1
+            return f'VAR{self.called}'
+
+    def substitute_vars(self, template):
+        tokens = template.strip().split()
+        namer = BasePreprocessor.Repl()
+        return ' '.join([namer() if token == '*' else token for token in tokens])
+    
+    def remove_duplicate_asterisks(self, template):
+        template = template.strip().split()
+        result = []
+        pt = 0
+        while pt < len(template):
+            result.append(template[pt])
+            if template[pt] == '*':
+                while pt < len(template) and template[pt] == '*':
+                    # getting rid of contiguous asterisks
+                    pt += 1
+            else:
+                pt += 1
+        return ' '.join(result)
+
+    def process_templates(self):
+        input_source = self.params['templates']
+        with open(input_source, 'r') as f:
+            gt = json.load(f)
+        templates = {}
+        raw_templates = {}
+        for idx in gt:
+            clean_template = self.remove_duplicate_asterisks(gt[idx][0])
+            raw_templates[idx] = clean_template
+            logie_template = self.substitute_vars(clean_template)
+            processed_parts = self._process_template(logie_template)
+            triples = gt[idx][1]
+            if triples:
+                triples = [Extraction.fromTuple(tup, sentence=logie_template)
+                        for tup in triples]
+            gt[idx] = [triple for triple in triples if triple.pred]
+            templates[idx] = [part for part in processed_parts if part] 
+        return templates, gt, raw_templates
+
+    def process_logs(self):
+        """Returns generator from the raw log file and yields a log as
+        it's processed"""
+        input_source = self.params['raw_logs']
+        with open(input_source, 'r', encoding='latin-1') as logs_file:
+            for log in logs_file:
+                yield self._process_log(log)
+
+    

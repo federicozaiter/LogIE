@@ -1,40 +1,4 @@
 import re
-from tqdm import tqdm
-from ..decorators import print_step
-import json
-from ..oie_extraction.extraction import Extraction
-
-
-class Repl:
-    def __init__(self, ini=0):
-        self.called = ini
-    def __call__(self, match=None):
-        self.called += 1
-        return f'VAR{self.called}'
-
-
-def substitute_vars(template):
-    tokens = template.strip().split()
-    namer = Repl()
-    return ' '.join([namer() if token == '*' else token for token in tokens])
-
-
-@print_step
-def process_templates_json(input_source, process_line=None):
-    with open(input_source, 'r') as f:
-        gt = json.load(f)
-    templates = {}
-    for idx in gt:
-        template = substitute_vars(gt[idx][0])
-        template = re.sub(underscores, remove_underscores, template)
-        processed_parts = process_line(template)
-        triples = gt[idx][1]
-        if triples:
-            triples = [Extraction.fromTuple(tup, sentence=template)
-                       for tup in triples]
-        gt[idx] = [triple for triple in triples if triple.pred]
-        templates[idx] = [part for part in processed_parts if part] 
-    return templates, gt
 
 
 brackets = re.compile(r'[\[\]\{\}\(\)]')
@@ -45,7 +9,9 @@ def remove_brackets(line):
 # Some variables use underscores which we want to keep so we only remove
 # the ones from longer sentences
 underscores = re.compile(r'([\w\d]+_[\w\d]+){3,}')
-def remove_underscores(match):
+def remove_underscores(line):
+    return re.sub(underscores, removing_underscores, line)
+def removing_underscores(match):
     group = match.group()
     return group.replace('_', ' ')
 
