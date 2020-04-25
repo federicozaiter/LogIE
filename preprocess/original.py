@@ -5,6 +5,8 @@ from .utils import (
     split_on_punctuation,
 )
 import re
+from .preprocessor import BasePreprocessor
+from .globalConfig import regL
 
 
 # this step should be done before brackets are removed
@@ -46,12 +48,21 @@ def splitting_original(parts):
     return result
 
 
-def process_line(template):
-    template = remove_log_type_tag(template)
-    parts = subtract_brackets(template)
-    parts = splitting_original(parts)
-    parts = split_on_punctuation(parts)
-    return parts  
+class Original_Preprocessor(BasePreprocessor):
+    
+    def _process_template(self, template):
+        template = remove_log_type_tag(template)
+        parts = subtract_brackets(template)
+        parts = splitting_original(parts)
+        parts = split_on_punctuation(parts)
+        return parts  
+
+    def _process_log(self, log):
+        log = log.strip()
+        regexes = regL[self.params['templates_type']]
+        for regex in regexes:
+            log = re.sub(regex, "", log)
+        return log
 
 
 @register("original")
@@ -59,5 +70,4 @@ def preprocess_dataset(params):
     """
     Runs template preprocessing executor.
     """
-    input_source = params['templates']
-    return process_templates_json(input_source, process_line)
+    return Original_Preprocessor(params)

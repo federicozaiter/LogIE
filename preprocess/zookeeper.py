@@ -5,6 +5,8 @@ from .utils import (
     split_on_punctuation,
 )
 import re
+from .preprocessor import BasePreprocessor
+from .globalConfig import regL
 
 
 bgl_tag_pattern = re.compile('^([A-Z]+\s)')
@@ -44,12 +46,21 @@ def subtract_brackets(line, pattern=parentheses_pattern):
     return result
 
 
-def process_line(template):
-    template = remove_log_type_tag(template)
-    parts = subtract_brackets(template)
-    parts = splitting_zookeeper(parts)
-    parts = split_on_punctuation(parts)
-    return parts 
+class Zookeeper_Preprocessor(BasePreprocessor):
+    
+    def _process_template(self, template):
+        template = remove_log_type_tag(template)
+        parts = subtract_brackets(template)
+        parts = splitting_zookeeper(parts)
+        parts = split_on_punctuation(parts)
+        return parts    
+
+    def _process_log(self, log):
+        idx, log = log.strip().split('\t')
+        regexes = regL[self.params['templates_type']]
+        for regex in regexes:
+            log = re.sub(regex, "", log)
+        return log
 
 
 @register("zookeeper")
@@ -57,5 +68,4 @@ def preprocess_dataset(params):
     """
     Runs template preprocessing executor.
     """
-    input_source = params['templates']
-    return process_templates_json(input_source, process_line)
+    return Zookeeper_Preprocessor(params)

@@ -5,6 +5,8 @@ from .utils import (
     split_on_punctuation,
 )
 import re
+from .preprocessor import BasePreprocessor
+from .globalConfig import regL
 
 
 bgl_tag_pattern = re.compile('^([A-Z]+\s)')
@@ -51,15 +53,24 @@ def splitting_spark(parts):
     return result
 
 
-def process_line(template):
-    template = remove_log_type_tag(template)
-    parts = subtract_brackets(template, curly_brackets_pattern)
-    parts = flatten(map(lambda x: subtract_brackets(x, square_brackets_pattern), parts))
-    parts = flatten(map(lambda x: subtract_brackets(x, parentheses_pattern), parts))
-    parts = map(lambda x: remove_brackets(x), parts)
-    parts = splitting_spark(parts)
-    parts = split_on_punctuation(parts)
-    return parts  
+class Spark_Preprocessor(BasePreprocessor):
+    
+    def _process_template(self, template):
+        template = remove_log_type_tag(template)
+        parts = subtract_brackets(template, curly_brackets_pattern)
+        parts = flatten(map(lambda x: subtract_brackets(x, square_brackets_pattern), parts))
+        parts = flatten(map(lambda x: subtract_brackets(x, parentheses_pattern), parts))
+        parts = map(lambda x: remove_brackets(x), parts)
+        parts = splitting_spark(parts)
+        parts = split_on_punctuation(parts)
+        return parts     
+
+    def _process_log(self, log):
+        idx, log = log.strip().split('\t')
+        regexes = regL[self.params['templates_type']]
+        for regex in regexes:
+            log = re.sub(regex, "", log)
+        return log
 
 
 @register("spark")
@@ -67,5 +78,4 @@ def preprocess_dataset(params):
     """
     Runs template preprocessing executor.
     """
-    input_source = params['templates']
-    return process_templates_json(input_source, process_line)
+    return Spark_Preprocessor(params)

@@ -5,7 +5,8 @@ from .utils import (
     split_on_punctuation,
 )
 import re
-from functools import reduce
+from .preprocessor import BasePreprocessor
+from .globalConfig import regL
 
 
 brackets_pattern = re.compile(r'\(([^\(\)]+)\)|\<([^\<\>]+)\>')
@@ -43,11 +44,20 @@ def splitting_hpc(parts):
     return result
 
 
-def process_line(template):
-    parts = subtract_brackets(template)
-    parts = splitting_hpc(parts)
-    parts = split_on_punctuation(parts)
-    return parts  
+class HPC_Preprocessor(BasePreprocessor):
+    
+    def _process_template(self, template):
+        parts = subtract_brackets(template)
+        parts = splitting_hpc(parts)
+        parts = split_on_punctuation(parts)
+        return parts   
+
+    def _process_log(self, log):
+        idx, log = log.strip().split('\t')
+        regexes = regL[self.params['templates_type']]
+        for regex in regexes:
+            log = re.sub(regex, "", log)
+        return log
 
 
 @register("hpc")
@@ -55,5 +65,4 @@ def preprocess_dataset(params):
     """
     Runs template preprocessing executor.
     """
-    input_source = params['templates']
-    return process_templates_json(input_source, process_line)
+    return HPC_Preprocessor(params)
