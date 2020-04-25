@@ -8,6 +8,7 @@ from .utils import (
 )
 from .init_params import init_main_args, parse_main_args
 from .utils import combine_extractions, unstructure_extractions
+from .output_generator import OutputGenerator
 
 
 def init_args():
@@ -29,8 +30,9 @@ def main():
     print_params(params)
     file_handling(params)
     # Load data: templates and ground truth for evaluation
-    preprocess_data = preprocess_registry.get_preprocessor(params['templates_type'])
-    processed_templates, ground_truth = preprocess_data(params)
+    preprocessor_getter = preprocess_registry.get_preprocessor(params['templates_type'])
+    preprocessor = preprocessor_getter(params)
+    processed_templates, ground_truth, raw_templates = preprocessor.process_templates()
     # Run rules triples extraction
     if 'rules' in params:
         rules_extractor = rules_registry.get_extractor(params['rules'])
@@ -43,6 +45,16 @@ def main():
     openie_extractor = openie_registry.get_extractor(params['openie'])
     oie_triples, oie_remaining = openie_extractor(remaining, './triples.txt')
     global_result = combine_extractions(oie_triples, rule_triples)
+    # Producing desired output for logs input
+    if 'raw_logs' in params:
+        processed_logs = preprocessor.process_logs()
+        output_generator = OutputGenerator(raw_templates)
+        desired_output = output_generator.generate_output(processed_logs, global_result)
+    for i, log in enumerate(desired_output, 1):
+        print(log)
+        if i == 100:
+            break
+    exit()
     # PropS uses a different structure so we change it
     if params['openie'] == 'props' or 'lexical' in params['evaluation']:
         unstructure_extractions(ground_truth)

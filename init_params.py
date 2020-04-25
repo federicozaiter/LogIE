@@ -17,6 +17,13 @@ def init_main_args():
         type=str,
         nargs=1,
         help="input raw templates file path",
+    )    
+    parser.add_argument(
+        "--raw_logs",
+        metavar="raw_logs",
+        type=str,
+        nargs=1,
+        help="input raw raw_logs file path",
     )
     base_dir_default = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "output"
@@ -99,6 +106,8 @@ def parse_main_args(args):
         params["rules"] = args.rules[0]
     if args.templates:
         params["templates"] = os.path.normpath(args.templates[0])
+    if args.raw_logs:
+        params["raw_logs"] = os.path.normpath(args.raw_logs[0])    
     if args.id:
         params['id'] = args.id[0]
     else:
