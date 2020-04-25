@@ -76,6 +76,15 @@ class Extraction:
         if self.arg2:
             length += 1
         return length
+    
+    def copy(self):
+        return Extraction(
+            str(self.pred),
+            arg1=str(self.arg1),
+            arg2=str(self.arg2),
+            sentence=str(self.sentence) if self.sentence else None, 
+            confidence=self.confidence,
+            )
 
 
 class UnstructuredExtraction:
@@ -142,6 +151,14 @@ class UnstructuredExtraction:
         if self.args:
             length += len(self.args)
         return length
+    
+    def copy(self):
+        return UnstructuredExtraction(
+            str(self.pred),
+            args=[str(arg) for arg in self.args],
+            sentence=str(self.sentence) if self.sentence else None, 
+            confidence=self.confidence,
+            )
 
 
 def main():
