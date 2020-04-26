@@ -4,14 +4,18 @@ import re
 
 varx_pattern = re.compile(r'VAR(\d+)')    
 class ReplVarX:
-    def __init__(self, variables, triples):
+    def __init__(self, variables, triples, tag=True):
         self.variables = variables
         self.triples = triples
+        self.tag = tag
     def __call__(self, match=None):
         var_idx = int(match.group(1)) - 1
         # tagging variablas as [([VAR])]
         if var_idx < len(self.variables):
-            return f'[([{self.variables[var_idx]}])]'
+            if self.tag:
+                return f'[([{self.variables[var_idx]}])]'
+            else:
+                return f'{self.variables[var_idx]}'
         else:
             return ''
 
@@ -66,9 +70,8 @@ class OutputGenerator:
                 pl += 1
         return variables
     
-    def replace_variables(self, variables, triples,template, log):
-        repl_varx = ReplVarX(variables, triples)
-        print(list(enumerate(variables)), triples, [template], [log])
+    def replace_variables(self, variables, triples, tag=True):
+        repl_varx = ReplVarX(variables, triples, tag)
         for triple in triples:
             triple.pred = re.sub(varx_pattern, repl_varx, triple.pred)
             if hasattr(triple, 'arg1'):
@@ -80,15 +83,14 @@ class OutputGenerator:
                     triple.args,
                     )
     
-    def generate_output(self, processed_logs, triples):
-        for log in processed_logs:
-            idx, _ = self.matcher.match_template(log.split())
-            idx = str(idx)
-            if idx is not None and idx in triples:
-                variables = self.__get_vars_list(idx, log)
-                triples_set = [triple.copy() for triple in triples[idx]]
-                self.replace_variables(variables, triples_set, self.templates[idx], log)
-                yield (log, triples_set)
+    def generate_output(self, log, triples, tag=True):
+        idx, _ = self.matcher.match_template(log.split())
+        idx = str(idx)
+        if idx is not None and idx in triples:
+            variables = self.__get_vars_list(idx, log)
+            triples_set = [triple.copy() for triple in triples[idx]]
+            self.replace_variables(variables, triples_set, tag)
+            return triples_set
 
 
 """There should be methods for building a template matching tree

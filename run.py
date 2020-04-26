@@ -7,7 +7,7 @@ from .utils import (
     print_params,
 )
 from .init_params import init_main_args, parse_main_args
-from .utils import combine_extractions, unstructure_extractions
+from .utils import combine_extractions
 from .output_generator import OutputGenerator
 
 
@@ -45,25 +45,31 @@ def main():
     openie_extractor = openie_registry.get_extractor(params['openie'])
     oie_triples, oie_remaining = openie_extractor(remaining, './triples.txt')
     global_result = combine_extractions(oie_triples, rule_triples)
-    # Producing desired output for logs input
     if 'raw_logs' in params:
-        processed_logs = preprocessor.process_logs()
+        # Producing desired output for logs input
         output_generator = OutputGenerator(raw_templates)
-        desired_output = output_generator.generate_output(processed_logs, global_result)
-    for i, log in enumerate(desired_output, 1):
-        print(log)
-        if i == 100:
-            break
-    exit()
-    # PropS uses a different structure so we change it
-    if params['openie'] == 'props' or 'lexical' in params['evaluation']:
-        unstructure_extractions(ground_truth)
-        unstructure_extractions(global_result)
-    # Run evaluation
-    for eval_metric in params['evaluation']:
-        run_metric = eval_registry.get_eval_metric(eval_metric)
-        run_metric(global_result, ground_truth)
-
+        for eval_metric in params['evaluation']:
+            get_evaluator = eval_registry.get_eval_metric(eval_metric)
+            evaluator = get_evaluator(params)
+            processed_logs = preprocessor.process_logs()
+            for i, log in enumerate(processed_logs, 1):
+                online_output = output_generator.generate_output(log, global_result, tag=False)
+                gt_output =  output_generator.generate_output(log, ground_truth, tag=False)
+                evaluator.single_eval(online_output, gt_output)
+                # print((log, online_output, gt_output))
+                if i == 100:
+                    print(f'ONLY CONSIDERING {i} LOGS IN THE EVALUATION')
+                    break
+            eval_result = evaluator.metrics()
+            print(', '.join(f'{key}: {value}' for key, value in eval_result.items()))
+    else:
+        # Run template based evaluation
+        for eval_metric in params['evaluation']:
+            get_evaluator = eval_registry.get_eval_metric(eval_metric)
+            evaluator = get_evaluator(params)
+            evaluator.eval(global_result, ground_truth)
+            eval_result = evaluator.metrics()
+            print(', '.join(f'{key}: {value}' for key, value in eval_result.items()))
 
 if __name__ == "__main__":
     main()
