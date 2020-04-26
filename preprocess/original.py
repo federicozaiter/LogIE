@@ -1,6 +1,5 @@
 from .registry import register
 from .utils import (
-    process_templates_json,
     remove_brackets,
     split_on_punctuation,
 )
