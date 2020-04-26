@@ -113,9 +113,9 @@ class UnstructuredExtraction:
         args = extraction.arg1.split() if extraction.arg1 else []
         args.extend(extraction.arg2.split() if extraction.arg2 else [])
         return cls(
-            extraction.pred,
-            args=args,
-            sentence=extraction.sentence,
+            str(extraction.pred),
+            args=[str(arg) for arg in args],
+            sentence=str(extraction.sentence) if extraction.sentence else None,
             confidence=extraction.confidence
             )
 
@@ -159,6 +159,16 @@ class UnstructuredExtraction:
             sentence=str(self.sentence) if self.sentence else None, 
             confidence=self.confidence,
             )
+    
+    @staticmethod
+    def unstructure_extractions(extractions):
+        unstructured = []
+        for ext in extractions:
+            if hasattr(ext, 'args'):
+                unstructured.append(ext.copy())
+            else:
+                unstructured.append(UnstructuredExtraction.fromExtraction(ext))
+        return unstructured
 
 
 def main():

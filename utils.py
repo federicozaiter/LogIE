@@ -1,6 +1,5 @@
 import os
 import json
-from .oie_extraction.extraction import Extraction, UnstructuredExtraction
 
 
 def file_handling(params):
@@ -30,12 +29,12 @@ def combine_extractions(one, two):
     return combined
 
 
-def unstructure_extractions(extractions):
-    for idx in extractions:
-        unstructured = []
-        for ext in extractions[idx]:
-            if hasattr(ext, 'args'):
-                unstructured.append(ext)
-            else:
-                unstructured.append(UnstructuredExtraction.fromExtraction(ext))
-        extractions[idx] = unstructured
+def save_output_triples(triples, params):
+    with open(params["templates"], 'r') as f:
+        gt = json.load(f)
+    
+    # "index":["sentence", ["triple1", "triple2",]]
+    result = {idx:[gt[idx][0], [str(triple) for triple in triples[idx]]] for idx in triples}
+    output_file_name = f"{params['templates_type']}_{params['openie']}.json"
+    with open(output_file_name, 'w') as out:
+        json.dump(result, out, indent=4, sort_keys=False)
