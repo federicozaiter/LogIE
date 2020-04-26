@@ -1,9 +1,16 @@
 from .registry import register
+from .evaluator import BaseEvaluator
 
+
+class CountsEvaluator(BaseEvaluator):
+    def single_eval(self, extractions, groundtruth):
+        self.num_gt += len(extractions)
+        self.num_extractions += len(groundtruth)
+    
+    def metrics(self):
+        return {'Expected triples':self.num_gt, 'Number of extractions':self.num_extractions}
 
 @register("counts")
-def eval(results, ground_truth):
+def build_eval(params):
     """ Returns the counts of expected and extracted triples."""
-    num_ext = sum(len(results[idx]) for idx in results)
-    num_gt = sum(len(ground_truth[idx]) for idx in ground_truth)
-    print(f'Expected triples: {num_gt}, Number of extractions: {num_ext}')
+    return CountsEvaluator(params)
