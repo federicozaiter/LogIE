@@ -58,20 +58,22 @@ class BasePreprocessor(ABC):
         input_source = self.params['templates']
         with open(input_source, 'r') as f:
             gt = json.load(f)
-        templates = {}
-        raw_templates = {}
+        processed_templates = {}
+        improved_templates = {}
+        online_templates = {}
+        gt_triples = {}
         for idx in gt:
-            clean_template = self.remove_duplicate_asterisks(gt[idx][0])
-            raw_templates[idx] = clean_template
-            logie_template = self.substitute_vars(clean_template)
+            improved_templates[idx] = self.remove_duplicate_asterisks(gt[idx][1])
+            online_templates[idx] = self.remove_duplicate_asterisks(gt[idx][0])
+            logie_template = self.substitute_vars(online_templates[idx])
             processed_parts = self._process_template(logie_template)
-            triples = gt[idx][1]
+            triples = gt[idx][2]
             if triples:
                 triples = [Extraction.fromTuple(tup, sentence=logie_template)
                         for tup in triples]
-            gt[idx] = [triple for triple in triples if triple.pred]
-            templates[idx] = [part for part in processed_parts if part] 
-        return templates, gt, raw_templates
+            gt_triples[idx] = [triple for triple in triples if triple.pred]
+            processed_templates[idx] = [part for part in processed_parts if part] 
+        return processed_templates, gt_triples, improved_templates, online_templates
 
     def process_logs(self):
         """Returns generator from the raw log file and yields a log as
@@ -80,5 +82,3 @@ class BasePreprocessor(ABC):
         with open(input_source, 'r', encoding='latin-1') as logs_file:
             for log in logs_file:
                 yield self._process_log(log)
-
-    
