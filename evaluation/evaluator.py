@@ -30,7 +30,7 @@ class BaseEvaluator(ABC):
             print("Run a single evaluation first before getting metrics.")
             return None
         precision = self.num_ok / self.num_extractions
-        recall = self.num_ok / self.num_gt
-        f1 = 2 * (precision * recall) / (precision + recall)
-        f2 = 5 * (precision * recall) / (4 * precision + recall)
+        recall = self.num_recalled / self.num_gt
+        f1 = 2 * (precision * recall) / (precision + recall) if precision * recall > 0 else 0
+        f2 = 5 * (precision * recall) / (4 * precision + recall) if precision * recall > 0 else 0
         return {'Precision':precision, 'Recall':recall, 'F1':f1, 'F2':f2}
