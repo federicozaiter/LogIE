@@ -90,6 +90,24 @@ def init_main_args():
         nargs=1,
         help="Experiment id. Automatically generated if not specified.",
     )
+    parser.add_argument(
+        "--tag",
+        action="store_true",
+        default=False,
+        help="Tag variables in the output triples (i.e. [([variable])] ).",
+    )
+    parser.add_argument(
+        "--save_output",
+        action="store_true",
+        default=False,
+        help="Save the output of logs or templates triples.",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        default=False,
+        help="Force overwriting previous output with same id.",
+    )
 
     return parser
 
@@ -101,13 +119,16 @@ def parse_main_args(args):
         "base_dir": args.base_dir[0],
         "templates_type": args.templates_type[0],
         "openie": args.openie[0],
+        "tag": args.tag,
+        "save_output": args.save_output,
+        "force": args.force,
     }
     if args.rules:
         params["rules"] = args.rules[0]
     if args.templates:
         params["templates"] = os.path.normpath(args.templates[0])
     if args.raw_logs:
-        params["raw_logs"] = os.path.normpath(args.raw_logs[0])    
+        params["raw_logs"] = os.path.normpath(args.raw_logs[0])   
     if args.id:
         params['id'] = args.id[0]
     else:

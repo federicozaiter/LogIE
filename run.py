@@ -5,10 +5,14 @@ from .preprocess import registry as preprocess_registry
 from .utils import (
     file_handling,
     print_params,
+    save_results,
+    save_global_output_triples,
+    save_log_triples,
 )
 from .init_params import init_main_args, parse_main_args
-from .utils import combine_extractions
+from .utils import combine_extractions, remove_varx
 from .output_generator import OutputGenerator
+import os
 
 
 def init_args():
@@ -32,7 +36,8 @@ def main():
     # Load data: templates and ground truth for evaluation
     preprocessor_getter = preprocess_registry.get_preprocessor(params['templates_type'])
     preprocessor = preprocessor_getter(params)
-    processed_templates, ground_truth, raw_templates = preprocessor.process_templates()
+    processed_templates, ground_truth, improved_templates, online_templates =\
+        preprocessor.process_templates()
     # Run rules triples extraction
     if 'rules' in params:
         rules_extractor = rules_registry.get_extractor(params['rules'])
@@ -47,29 +52,48 @@ def main():
     global_result = combine_extractions(oie_triples, rule_triples)
     if 'raw_logs' in params:
         # Producing desired output for logs input
-        output_generator = OutputGenerator(raw_templates)
-        for eval_metric in params['evaluation']:
-            get_evaluator = eval_registry.get_eval_metric(eval_metric)
-            evaluator = get_evaluator(params)
-            processed_logs = preprocessor.process_logs()
-            for i, log in enumerate(processed_logs, 1):
-                online_output = output_generator.generate_output(log, global_result, tag=False)
-                gt_output =  output_generator.generate_output(log, ground_truth, tag=False)
-                evaluator.single_eval(online_output, gt_output)
-                # print((log, online_output, gt_output))
-                if i == 100:
-                    print(f'ONLY CONSIDERING {i} LOGS IN THE EVALUATION')
-                    break
-            eval_result = evaluator.metrics()
+        gt_output_generator = OutputGenerator(improved_templates)
+        online_output_generator = OutputGenerator(online_templates)
+        evaluators = {}
+        if params['evaluation']:
+            for eval_metric in params['evaluation']:
+                get_evaluator = eval_registry.get_eval_metric(eval_metric)
+                evaluator = get_evaluator(params)
+                evaluators[eval_metric] = evaluator
+        processed_logs = preprocessor.process_logs()
+        for idx, log in enumerate(processed_logs, 1):
+            online_output = online_output_generator.generate_output(log, global_result, tag=params['tag'])
+            gt_output =  gt_output_generator.generate_output(log, ground_truth, tag=params['tag'])
+            for eval_metric in evaluators:
+                evaluators[eval_metric].single_eval(online_output, gt_output)
+            if params['save_output']:
+                save_log_triples(idx, online_output, params)
+            # print((log, online_output, gt_output))
+            # if idx == 100:
+            #     print(f'ONLY CONSIDERING {idx} LOGS IN THE EVALUATION')
+            #     break
+        for eval_metric in evaluators:
+            eval_result = evaluators[eval_metric].metrics()
             print(', '.join(f'{key}: {value}' for key, value in eval_result.items()))
     else:
         # Run template based evaluation
         for eval_metric in params['evaluation']:
             get_evaluator = eval_registry.get_eval_metric(eval_metric)
             evaluator = get_evaluator(params)
+            remove_varx(global_result)
+            remove_varx(ground_truth)
             evaluator.eval(global_result, ground_truth)
             eval_result = evaluator.metrics()
             print(', '.join(f'{key}: {value}' for key, value in eval_result.items()))
+            results_file_path = os.path.join(
+                params['results_dir'],
+                'results_template_triples.csv'
+            )
+            if  params['save_output'] and eval_metric in ['he', 'lexical']:
+                save_results(eval_metric, eval_result, params, results_file_path)
+        if params['save_output']:
+            save_global_output_triples(global_result, params)
+
 
 if __name__ == "__main__":
     main()
