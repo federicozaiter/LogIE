@@ -37,8 +37,8 @@ def init_main_args():
         help="base output directory for output files",
     )
     parser.add_argument(
-        "--templates_type",
-        metavar="templates_type",
+        "--log_type",
+        metavar="log_type",
         type=str,
         nargs=1,
         default=["original"],
@@ -117,7 +117,7 @@ def parse_main_args(args):
     params = {
         "evaluation": args.evaluation,
         "base_dir": args.base_dir[0],
-        "templates_type": args.templates_type[0],
+        "log_type": args.log_type[0],
         "openie": args.openie[0],
         "tag": args.tag,
         "save_output": args.save_output,
@@ -135,12 +135,12 @@ def parse_main_args(args):
         params['id'] = str(uuid4().time_low)
     print(f"\nExperiment ID: {params['id']}")
     # Creating experiments results folder with the format
-    # {experiment_module_name}_{templates_type}_{id}
+    # {experiment_module_name}_{log_type}_{id}
     experiment_name = os.path.basename(sys.argv[0]).split('.')[0]
     params['id_dir'] = os.path.join(
             params['base_dir'],
             '_'.join((
-                experiment_name, params['templates_type'], params['id']
+                experiment_name, params['log_type'], params['id']
                 ))
         )
     params['results_dir'] = os.path.join(params['id_dir'], "results")

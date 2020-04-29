@@ -58,7 +58,7 @@ class Original_Preprocessor(BasePreprocessor):
 
     def _process_log(self, log):
         log = log.strip()
-        regexes = regL[self.params['templates_type']]
+        regexes = regL[self.params['log_type']]
         for regex in regexes:
             log = re.sub(regex, "", log)
         return log

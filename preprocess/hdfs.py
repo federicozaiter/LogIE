@@ -24,7 +24,7 @@ class HDFS_Preprocessor(BasePreprocessor):
 
     def _process_log(self, log):
         idx, log = log.strip().split('\t')
-        regexes = regL[self.params['templates_type']]
+        regexes = regL[self.params['log_type']]
         for regex in regexes:
             log = re.sub(regex, "", log)
         return log
