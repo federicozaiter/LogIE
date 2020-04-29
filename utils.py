@@ -28,7 +28,7 @@ def save_global_output_triples(triples, params):
     
     # "index":["sentence", ["triple1", "triple2",]]
     result = {idx:[gt[idx][0], [str(triple) for triple in triples[idx]]] for idx in triples}
-    output_file_name = f"{params['templates_type']}_{params['openie']}.json"
+    output_file_name = f"{params['log_type']}_{params['openie']}.json"
     output_file = os.path.join(
         params['results_dir'],
         output_file_name,
@@ -38,7 +38,7 @@ def save_global_output_triples(triples, params):
 
 
 def save_log_triples(log_idx, triples, params):
-    output_file_name = f"{params['templates_type']}_{params['openie']}.tsv"
+    output_file_name = f"{params['log_type']}_{params['openie']}.tsv"
     output_file = os.path.join(
         params['results_dir'],
         output_file_name
@@ -49,8 +49,14 @@ def save_log_triples(log_idx, triples, params):
             f.write(f'{params["id"]}\t{log_idx}\t{triple}\n')
 
 
-def save_results(eval_metric, eval_result, params, file_name):
-    record = [(params['templates_type'],
+def save_results(eval_metric, eval_result, params):
+    file_name =\
+        f"metrics_{params['log_type']}_{params['openie']}.csv"
+    results_file_path = os.path.join(
+                params['results_dir'],
+                file_name,
+            )
+    record = [(params['log_type'],
         params['openie'],
         eval_metric,
         eval_result['Precision'],
@@ -69,14 +75,11 @@ def save_results(eval_metric, eval_result, params, file_name):
             'F2',
             ]
         )  
-    output_file_name =\
-        f"metrics_{params['templates_type']}_{params['openie']}.csv"
-    with open(output_file_name, 'a') as f:
-        df.to_csv(f, mode='a', header=not f.tell())
-        if not os.path.isfile(output_file_name):
-            df.to_csv(output_file_name, header=True)
-        else:
-            df.to_csv(output_file_name, mode='a', header=False)
+
+    if not os.path.isfile(results_file_path):
+        df.to_csv(results_file_path, header=True)
+    else:
+        df.to_csv(results_file_path, mode='a', header=False)
 
 
 import re
@@ -114,7 +117,7 @@ def file_handling(params):
                 + "Please provide the raw logs path."
             )
 
-    if params['save_output']:
+    if params['save_output'] or params['evaluation']:
         # Checks if the experiment id already exists
         if os.path.exists(params["id_dir"]) and not params["force"]:
             raise FileExistsError(

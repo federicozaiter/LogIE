@@ -34,7 +34,7 @@ def main():
     print_params(params)
     file_handling(params)
     # Load data: templates and ground truth for evaluation
-    preprocessor_getter = preprocess_registry.get_preprocessor(params['templates_type'])
+    preprocessor_getter = preprocess_registry.get_preprocessor(params['log_type'])
     preprocessor = preprocessor_getter(params)
     processed_templates, ground_truth, improved_templates, online_templates =\
         preprocessor.process_templates()
@@ -48,6 +48,7 @@ def main():
         remaining = {idx:templates for idx, templates in processed_templates.items()}
     # Run openie triples extraction
     openie_extractor = openie_registry.get_extractor(params['openie'])
+    # triples_output_file = os.path.join(params['id_dir'], './triples.txt')
     oie_triples, oie_remaining = openie_extractor(remaining, './triples.txt')
     global_result = combine_extractions(oie_triples, rule_triples)
     if 'raw_logs' in params:
@@ -63,18 +64,20 @@ def main():
         processed_logs = preprocessor.process_logs()
         for idx, log in enumerate(processed_logs, 1):
             online_output = online_output_generator.generate_output(log, global_result, tag=params['tag'])
-            gt_output =  gt_output_generator.generate_output(log, ground_truth, tag=params['tag'])
             for eval_metric in evaluators:
+                gt_output =  gt_output_generator.generate_output(log, ground_truth, tag=params['tag'])
                 evaluators[eval_metric].single_eval(online_output, gt_output)
             if params['save_output']:
                 save_log_triples(idx, online_output, params)
             # print((log, online_output, gt_output))
-            # if idx == 100:
-            #     print(f'ONLY CONSIDERING {idx} LOGS IN THE EVALUATION')
-            #     break
+            if idx == 5e6:
+                print(f'ONLY CONSIDERING {int(idx)} LOGS IN THE EVALUATION')
+                break
         for eval_metric in evaluators:
             eval_result = evaluators[eval_metric].metrics()
             print(', '.join(f'{key}: {value}' for key, value in eval_result.items()))
+            if eval_metric in ['he', 'lexical']:
+                save_results(eval_metric, eval_result, params)
     else:
         # Run template based evaluation
         for eval_metric in params['evaluation']:
@@ -85,12 +88,8 @@ def main():
             evaluator.eval(global_result, ground_truth)
             eval_result = evaluator.metrics()
             print(', '.join(f'{key}: {value}' for key, value in eval_result.items()))
-            results_file_path = os.path.join(
-                params['results_dir'],
-                'results_template_triples.csv'
-            )
-            if  params['save_output'] and eval_metric in ['he', 'lexical']:
-                save_results(eval_metric, eval_result, params, results_file_path)
+            if eval_metric in ['he', 'lexical']:
+                save_results(eval_metric, eval_result, params)
         if params['save_output']:
             save_global_output_triples(global_result, params)
 

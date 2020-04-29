@@ -91,6 +91,7 @@ class OutputGenerator:
             triples_set = [triple.copy() for triple in triples[idx]]
             self.replace_variables(variables, triples_set, tag)
             return triples_set
+        return []
 
 
 """There should be methods for building a template matching tree

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import json
 from ..oie_extraction.extraction import Extraction
+from tqdm import tqdm
 
 
 class BasePreprocessor(ABC):
@@ -79,6 +80,8 @@ class BasePreprocessor(ABC):
         """Returns generator from the raw log file and yields a log as
         it's processed"""
         input_source = self.params['raw_logs']
+        with open(input_source, 'r', encoding='latin-1') as IN:
+            line_count = sum(1 for line in IN)
         with open(input_source, 'r', encoding='latin-1') as logs_file:
-            for log in logs_file:
+            for log in tqdm(logs_file, total=line_count):
                 yield self._process_log(log)
