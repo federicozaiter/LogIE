@@ -33,8 +33,11 @@ class HeEvaluator(BaseEvaluator):
             raise TypeError(
                 "Structured extractions should be used as input for this evaluation method."
                 )
-        num_ok, num_extractions, num_recalled, num_gt =\
-            he_2(extractions, groundtruth)
+        if not extractions and not groundtruth:
+            num_ok = num_extractions = num_recalled = num_gt = 1
+        else:
+            num_ok, num_extractions, num_recalled, num_gt =\
+                he_2(extractions, groundtruth)
         self.num_ok += num_ok
         self.num_gt += num_gt
         self.num_extractions += num_extractions

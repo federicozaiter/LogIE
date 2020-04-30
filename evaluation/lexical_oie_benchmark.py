@@ -43,8 +43,11 @@ class LexicalEvaluator(BaseEvaluator):
         if not (check_unstructured(extractions) and  check_unstructured(groundtruth)):
             extractions = unstructure_extractions(extractions)
             groundtruth = unstructure_extractions(groundtruth)
-        num_ok, num_extractions, num_recalled, num_gt =\
-            lexical(extractions, groundtruth)
+        if not extractions and not groundtruth:
+            num_ok = num_extractions = num_recalled = num_gt = 1
+        else:
+            num_ok, num_extractions, num_recalled, num_gt =\
+                lexical(extractions, groundtruth)
         self.num_ok += num_ok
         self.num_gt += num_gt
         self.num_extractions += num_extractions
