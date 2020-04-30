@@ -7,7 +7,6 @@ from predpatt.patt import Argument
 import spacy
 __nlp = spacy.load('en_core_web_sm')
 
-
 (NORMAL, POSS, APPOS, AMOD) = ("normal", "poss", "appos", "amod")
 
 
@@ -117,10 +116,13 @@ def extract_triples(input_remaining, output):
     for idx in input_remaining:
         for line in input_remaining[idx]:
             if line.strip():
-                pp = PredPatt.from_sentence(line, opts=opts, cacheable=False)
-                extractions = get_predpatt_triples(pp, line)
-                if extractions:
-                    triples[idx] = triples.get(idx, []) + extractions
+                try:
+                    pp = PredPatt.from_sentence(line, opts=opts, cacheable=False)
+                    extractions = get_predpatt_triples(pp, line)
+                    if extractions:
+                        triples[idx] = triples.get(idx, []) + extractions
+                except KeyError:
+                    pass
         if idx not in triples:
             remaining[idx] = input_remaining[idx]
     return triples, remaining
