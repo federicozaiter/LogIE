@@ -2,6 +2,8 @@ import os
 import json
 import pandas as pd
 import shutil
+from contextlib import ContextDecorator
+import time
 
 
 def print_params(params):
@@ -129,3 +131,16 @@ def file_handling(params):
             shutil.rmtree(params["id_dir"])
         for target_dir in ['id_dir', 'results_dir']:
             os.makedirs(params[target_dir])
+
+
+class Timing(ContextDecorator):
+    def __init__(self, name):
+        self.name = name
+
+    def __enter__(self):
+        self.ini = time.perf_counter()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        fin = time.perf_counter()
+        result = fin - self.ini
+        print(f"Section {self.name} took {result} seconds.")

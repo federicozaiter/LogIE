@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+from tqdm import tqdm
 
 
 class BaseEvaluator(ABC):
@@ -21,7 +21,7 @@ class BaseEvaluator(ABC):
     def eval(self, results, groundtruth):
         """Evaluates the output as a whole considering various different
         templates and their corresponding triples"""
-        for idx in results:
+        for idx in tqdm(groundtruth, position=0, leave=True, desc="Eval"):
             self.single_eval(results[idx], groundtruth[idx])
         return self.metrics()
 
