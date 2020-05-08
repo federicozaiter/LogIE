@@ -78,15 +78,15 @@ class OutputGenerator:
                 triple.arg1 = re.sub(varx_pattern, repl_varx, triple.arg1)
                 triple.arg2 = re.sub(varx_pattern, repl_varx, triple.arg2)
             else:
-                triple.args = map(
+                triple.args = list(map(
                     lambda x: re.sub(varx_pattern, repl_varx, x),
                     triple.args,
-                    )
+                    ))
     
     def generate_output(self, log, triples, tag=True):
         idx, _ = self.matcher.match_template(log.split())
         idx = str(idx)
-        if idx is not None and idx in triples:
+        if idx is not None and idx in triples and triples[idx]:
             variables = self.__get_vars_list(idx, log)
             triples_set = [triple.copy() for triple in triples[idx]]
             self.replace_variables(variables, triples_set, tag)
