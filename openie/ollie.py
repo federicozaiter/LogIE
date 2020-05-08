@@ -48,23 +48,12 @@ def parse_triples(lines, text_to_idx):
     return result
 
 
-def get_remaining(input_remaining, ollie_triples):
-    result = {}
-    for idx in input_remaining:
-        if idx not in ollie_triples:
-            if idx in result:
-                result[idx].append(input_remaining[idx])
-            else:
-                result[idx] = input_remaining[idx]
-    return result
-
-
 @register('ollie')
-def extract_triples(input_remaining, output):
-    output = os.path.abspath(output)
+def extract_triples(input_remaining, params):
+    output = os.path.join(params['id_dir'], 'triples.txt')
     # the java app uses a file as an input so the remaining input is
     # saved into a temporary file 
-    temp_source = os.path.abspath('./temp_remaining.txt')
+    temp_source = os.path.join(params['id_dir'],'temp_remaining.txt')
     text_to_idx = save_remaining(input_remaining, temp_source)
     # parsing config
     config = configparser.ConfigParser()    
@@ -88,16 +77,23 @@ def extract_triples(input_remaining, output):
         ]
     print(command)
     cp = subprocess.run(command, cwd=jar_dir)
-    # os.remove(temp_source)
+    os.remove(temp_source)
 
     if cp.returncode == 0:
-        triples = {}
-        remaining = {}
         # parsing results into dicts
         ollie_output = text_file_to_list(output)[1:] # removing header
         ollie_triples = parse_triples(ollie_output, text_to_idx)
-        ollie_remaining = get_remaining(input_remaining, ollie_triples)
-        
+        ollie_remaining = {}
+        for idx in input_remaining:
+            if idx not in ollie_triples:
+                if idx not in ollie_triples:
+                    ollie_remaining = input_remaining[idx]
+                    ollie_triples[idx] = []
+                else:
+                    ollie_remaining[idx] = []
+
+
+        os.remove(output)
         return ollie_triples, ollie_remaining
     else:
         raise RuntimeError("Ollie FAILED")

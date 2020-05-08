@@ -33,7 +33,7 @@ def get_triples(extractions):
 
 
 @register('openie5')
-def extract_triples(input_remaining, output):
+def extract_triples(input_remaining, params):
     config = configparser.ConfigParser()    
     config_path = os.path.join(
         os.path.dirname(__file__),
@@ -78,10 +78,10 @@ def extract_triples(input_remaining, output):
                 # this way each idx in triples has an emptly list if no
                 # triples are extracted, likewise for remaining
                 if extracted_triples:
-                    triples[idx] = triples.get(idx, []) + extracted_triples
+                    triples.setdefault(idx, []).extend(extracted_triples)
                     remaining[idx] = remaining.get(idx, [])
                 else:
                     triples[idx] = triples.get(idx, [])
-                    remaining[idx] = remaining.get(idx, []) + [line]
+                    remaining.setdefault(idx, []).append(line)
     
     return triples, remaining

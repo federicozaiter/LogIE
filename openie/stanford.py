@@ -20,10 +20,7 @@ def parse_triples_reverb_format(lines):
             sentence=line[12],
             confidence=float(line[11])
             )
-        if idx in result:
-            result[idx].append(extraction)
-        else:
-            result[idx] = [extraction]
+        result.setdefault(idx, []).append(extraction)
     return result
 
 
@@ -56,7 +53,8 @@ def save_remaining(remaining, output_file):
 
 
 @register('stanford')
-def extract_triples(input_remaining, output):
+def extract_triples(input_remaining, params):
+    output = './triples.txt'
     # the java app uses a file as an input so the remaining input is
     # saved into a temporary file 
     temp_source = './temp_remaining.txt'
@@ -113,8 +111,16 @@ def extract_triples(input_remaining, output):
         # from the source file we build a mapping from the line to the actual
         # template index to gather all the triples for it
         for i, actual_idx in enumerate(stanford_to_idx):
-            triples_output[actual_idx] = triples_output.get(actual_idx, []) + stanford_triples.get(str(i), [])
-            remaining_output[actual_idx] = remaining_output.get(actual_idx, []) + stanford_remaining.get(str(i), [])
+            triples_output.setdefault(actual_idx, []).extend(stanford_triples.get(str(i), []))
+            remaining_output.setdefault(actual_idx, []).extend(stanford_remaining.get(str(i), []))
+        
+        for idx in input_remaining:
+            if idx not in triples_output:
+                remaining_output[idx] = input_remaining[idx]
+                triples_output[idx] = []
+            else:
+                remaining_output[idx] = []
+
         # removing the temporary file that was created
         os.remove(temp_source)
         return triples_output, remaining_output

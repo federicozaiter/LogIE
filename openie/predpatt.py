@@ -102,7 +102,7 @@ def get_predpatt_triples(predpatt_output, line):
 
 
 @register('predpatt')
-def extract_triples(input_remaining, output):
+def extract_triples(input_remaining, params):
     opts = PredPattOpts(
             resolve_relcl = True,  # relative clauses
             resolve_appos = True,  # appositional modifiers
@@ -120,9 +120,10 @@ def extract_triples(input_remaining, output):
                     pp = PredPatt.from_sentence(line, opts=opts, cacheable=False)
                     extractions = get_predpatt_triples(pp, line)
                     if extractions:
-                        triples[idx] = triples.get(idx, []) + extractions
+                        triples.setdefault(idx, []).extend(extractions)
                 except KeyError:
                     pass
         if idx not in triples:
             remaining[idx] = input_remaining[idx]
+            triples[idx] = []
     return triples, remaining

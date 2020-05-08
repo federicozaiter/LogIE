@@ -29,9 +29,10 @@ def get_triple(sentence):
 
 
 @register('baseline')
-def extract_triples(input_remaining, output):
+def extract_triples(input_remaining, params):
     triples = {}
     remaining = {}
     for idx in input_remaining:
         triples[idx] = list(map(get_triple, input_remaining[idx]))
+        remaining[idx] = []
     return triples, remaining

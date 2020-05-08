@@ -85,7 +85,8 @@ def save_remaining(remaining, output_file):
 
 
 @register('props')
-def extract_triples(input_remaining, output):
+def extract_triples(input_remaining, params):
+    output = './triples.txt'
     temp_source = './temp_remaining'
     save_remaining(input_remaining, temp_source)
     parse_input_stanford(temp_source)
@@ -116,15 +117,13 @@ def extract_triples(input_remaining, output):
     remaining = {}
     for pos, propositions in enumerate(props_extractions):
         idx = idx_mapping[pos]
-        if idx in extractions:
-            extractions[idx].extend(propositions)
-        else:
-            extractions[idx] = propositions
+        extractions.setdefault(idx, []).extend(propositions)
     
-    # it seems there will be extractions for every sentence but 
-    # just in case we try to build the remaining output
-    remaining_idx = set(idx_mapping).intersection(set(extractions))
-    for idx in remaining_idx:
-        remaining[idx] = input_remaining[idx]
-            
+    for idx in input_remaining:
+        if idx not in extractions:
+            remaining[idx] = input_remaining[idx]
+            extractions[idx] = []
+        else:
+            remaining[idx] = []
+
     return extractions, remaining

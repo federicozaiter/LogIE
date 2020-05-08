@@ -65,14 +65,19 @@ def parse_clausie_triples(output_triples, line_to_idx_line):
 
 
 @register('clausie')
-def extract_triples(input_remaining, output):
-    temp_source = os.path.abspath('./temp_remaining.txt')
+def extract_triples(input_remaining, params):
+    temp_source = os.path.join(params['id_dir'], 'temp_remaining.txt')
     line_to_idx_line = save_remaining(input_remaining, temp_source)
-    output = os.path.abspath(output)
+    output = os.path.join(params['id_dir'], 'triples.txt')
     run_clausie(temp_source, output)
     triples = parse_clausie_triples(output, line_to_idx_line)
+    os.remove(temp_source)
+    os.remove(output)
     remaining = {}
     for idx in input_remaining:
         if idx not in triples:
             remaining[idx] = input_remaining[idx]
+            triples[idx] = []
+        else:
+            remaining[idx] = []
     return triples, remaining
