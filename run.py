@@ -48,19 +48,17 @@ def main():
         remaining = {idx:templates for idx, templates in processed_templates.items()}
     # Run openie triples extraction
     openie_extractor = openie_registry.get_extractor(params['openie'])
-    # triples_output_file = os.path.join(params['id_dir'], './triples.txt')
-    oie_triples, oie_remaining = openie_extractor(remaining, './triples.txt')
+    oie_triples, oie_remaining = openie_extractor(remaining, params)
     global_result = combine_extractions(oie_triples, rule_triples)
     if 'raw_logs' in params:
         # Producing desired output for logs input
         gt_output_generator = OutputGenerator(improved_templates)
         online_output_generator = OutputGenerator(online_templates)
         evaluators = {}
-        if params['evaluation']:
-            for eval_metric in params['evaluation']:
-                get_evaluator = eval_registry.get_eval_metric(eval_metric)
-                evaluator = get_evaluator(params)
-                evaluators[eval_metric] = evaluator
+        for eval_metric in params['evaluation']:
+            get_evaluator = eval_registry.get_eval_metric(eval_metric)
+            evaluator = get_evaluator(params)
+            evaluators[eval_metric] = evaluator
         processed_logs = preprocessor.process_logs()
         for idx, log in enumerate(processed_logs, 1):
             online_output = online_output_generator.generate_output(log, global_result, tag=params['tag'])
@@ -69,10 +67,6 @@ def main():
                 evaluators[eval_metric].single_eval(online_output, gt_output)
             if params['save_output']:
                 save_log_triples(idx, online_output, params)
-            # print((log, online_output, gt_output))
-            if idx == 5e6:
-                print(f'ONLY CONSIDERING {int(idx)} LOGS IN THE EVALUATION')
-                break
         for eval_metric in evaluators:
             eval_result = evaluators[eval_metric].metrics()
             print(', '.join(f'{key}: {value}' for key, value in eval_result.items()))

@@ -8,6 +8,7 @@ from .utils import (
     save_results,
     save_global_output_triples,
     save_log_triples,
+    Timing
 )
 from .init_params import init_main_args, parse_main_args
 from .utils import combine_extractions, remove_varx
@@ -45,7 +46,6 @@ def main():
         preprocessor.process_templates()
      # Run openie triples extraction
     openie_extractor = openie_registry.get_extractor(params['openie'])
-    # triples_output_file = os.path.join(params['id_dir'], './triples.txt')
     if 'raw_logs' in params:
         # Producing desired output for logs input
         gt_output_generator = OutputGenerator(improved_templates)
@@ -57,11 +57,7 @@ def main():
             oie_input[idx] = log
             gt_output =  gt_output_generator.generate_output(log[0], ground_truth, tag=params['tag'])
             log_ground_truth[idx] = gt_output
-            # print((log, online_output, gt_output))
-            if idx == str(int(1e4)):
-                print(f'ONLY CONSIDERING {int(idx)} LOGS IN THE EVALUATION')
-                break
-        global_result, oie_remaining = openie_extractor(oie_input, './triples.txt')
+        global_result, oie_remaining = openie_extractor(oie_input, params)
 
         for eval_metric in params['evaluation']:
             get_evaluator = eval_registry.get_eval_metric(eval_metric)
@@ -73,7 +69,7 @@ def main():
                 save_results(eval_metric, eval_result, params)
     else:
         online_templates = {k:[v] for k, v in online_templates.items()}
-        global_result, oie_remaining = openie_extractor(online_templates, './triples.txt')
+        global_result, oie_remaining = openie_extractor(online_templates, params)
         # Run template based evaluation
         for eval_metric in params['evaluation']:
             get_evaluator = eval_registry.get_eval_metric(eval_metric)
