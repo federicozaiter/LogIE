@@ -91,12 +91,13 @@ class UnstructuredExtraction:
     """(predicate, [*args])"""
     
     __nlp = spacy.load('en_core_web_sm')
+    LEXICAL_THRESHOLD = 0.25
 
     @staticmethod
     def __get_root(sentence):
         if sentence is None:
             return None
-        doc = Extraction.__nlp(sentence)
+        doc = UnstructuredExtraction.__nlp(sentence)
         for token in doc:
             if token.dep_ == 'ROOT':
                 return token.text
@@ -127,18 +128,31 @@ class UnstructuredExtraction:
 
     def __eq__(self, other):
         if isinstance(other, UnstructuredExtraction):
-            get_root = UnstructuredExtraction.__get_root
-            return (
-                get_root(self.pred) == get_root(other.pred)
-                and self.args == other.args
-            )
+            self_res = self.pred.strip().split()
+            other_res = other.pred.strip().split()
+            if not set(self_res).intersection(set(other_res)):
+                return False
+            count_match = 0      
+            for w1 in other.args:
+                for w2 in self.args:
+                    if w1 == w2:
+                        count_match += 1
+            # we consider both coverages in this case so that the eq
+            # operator behaves symetrically
+            coverage_self = count_match / len(self.args) if self.args else 0
+            coverage_other = count_match / len(other.args) if other.args else 0
+            if coverage_self > UnstructuredExtraction.LEXICAL_THRESHOLD\
+                or\
+                coverage_other > UnstructuredExtraction.LEXICAL_THRESHOLD:
+                return True
+            return False
         return NotImplemented
 
     def __key(self):
-        get_root = Extraction.__get_root
+        get_root = UnstructuredExtraction.__get_root
         return (
             get_root(self.pred),
-            self.args,
+            ' '.join(self.args),
             )
 
     def __hash__(self):

@@ -51,33 +51,19 @@ def save_log_triples(log_idx, triples, params):
             f.write(f'{params["id"]}\t{log_idx}\t{triple}\n')
 
 
-def save_results(eval_metric, eval_result, params):
+def save_results(evaluators, params):
+    results = {'Logs':params['log_type'], 'OIE':params['openie']}
+    for eval_metric in evaluators:
+        eval_result = evaluators[eval_metric].metrics()
+        update_keys = {f'{eval_metric} {k}':v for k, v in eval_result.items()}
+        results.update(update_keys)
     file_name =\
         f"metrics_{params['log_type']}_{params['openie']}.csv"
     results_file_path = os.path.join(
                 params['results_dir'],
                 file_name,
             )
-    record = [(params['log_type'],
-        params['openie'],
-        eval_metric,
-        eval_result['Precision'],
-        eval_result['Recall'],
-        eval_result['F1'],
-        eval_result['F2'],
-        )]
-    df = pd.DataFrame(
-        record,
-        columns=['Logs',
-            'OIE',
-            'Metric',
-            'Precision',
-            'Recall',
-            'F1',
-            'F2',
-            ]
-        )  
-
+    df = pd.DataFrame.from_records([results])
     if not os.path.isfile(results_file_path):
         df.to_csv(results_file_path, header=True)
     else:

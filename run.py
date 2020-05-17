@@ -50,6 +50,11 @@ def main():
     openie_extractor = openie_registry.get_extractor(params['openie'])
     oie_triples, oie_remaining = openie_extractor(remaining, params)
     global_result = combine_extractions(oie_triples, rule_triples)
+    # Adding a hacky evaluator for obtaining further details
+    # TODO REMOVE
+    from collections import namedtuple
+    hacky_eval = namedtuple('type_counts', ['results'])
+    hacky_eval.metrics = lambda self: self.results
     if 'raw_logs' in params:
         # Producing desired output for logs input
         gt_output_generator = OutputGenerator(improved_templates)
@@ -62,28 +67,42 @@ def main():
         processed_logs = preprocessor.process_logs()
         for idx, log in enumerate(processed_logs, 1):
             online_output = online_output_generator.generate_output(log, global_result, tag=params['tag'])
+            gt_output =  gt_output_generator.generate_output(log, ground_truth, tag=params['tag'])
             for eval_metric in evaluators:
-                gt_output =  gt_output_generator.generate_output(log, ground_truth, tag=params['tag'])
+                if eval_metric == 'he' and params['openie'] == 'props':
+                    continue
                 evaluators[eval_metric].single_eval(online_output, gt_output)
             if params['save_output']:
                 save_log_triples(idx, online_output, params)
         for eval_metric in evaluators:
             eval_result = evaluators[eval_metric].metrics()
-            print(', '.join(f'{key}: {value}' for key, value in eval_result.items()))
-            if eval_metric in ['he', 'lexical']:
-                save_results(eval_metric, eval_result, params)
+            print(eval_metric,', '.join(f'{key}: {value}' for key, value in eval_result.items()))
+        if params['evaluation']:
+            # creating hacky evaluator instance
+            triple_type_counts = hacky_eval(
+                {'Rules Triples':sum(len(triples) for triples in rule_triples.values()),
+                'OIE Triples':sum(len(triples) for triples in oie_triples.values())})
+            evaluators['Type'] = triple_type_counts
+            save_results(evaluators, params)
     else:
         # Run template based evaluation
+        remove_varx(global_result)
+        remove_varx(ground_truth)
+        evaluators = {}
         for eval_metric in params['evaluation']:
             get_evaluator = eval_registry.get_eval_metric(eval_metric)
             evaluator = get_evaluator(params)
-            remove_varx(global_result)
-            remove_varx(ground_truth)
+            evaluators[eval_metric] = evaluator
             evaluator.eval(global_result, ground_truth)
             eval_result = evaluator.metrics()
             print(', '.join(f'{key}: {value}' for key, value in eval_result.items()))
-            if eval_metric in ['he', 'lexical']:
-                save_results(eval_metric, eval_result, params)
+        if params['evaluation']:
+            # creating hacky evaluator instance
+            triple_type_counts = hacky_eval(
+                {'Rules Triples':sum(len(triples) for triples in rule_triples.values()),
+                'OIE Triples':sum(len(triples) for triples in oie_triples.values())})
+            evaluators['Type'] = triple_type_counts
+            save_results(evaluators, params)
         if params['save_output']:
             save_global_output_triples(global_result, params)
 

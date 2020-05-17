@@ -30,9 +30,11 @@ def he_2(extractions, gt):
 class HeEvaluator(BaseEvaluator):
     def single_eval(self, extractions, groundtruth):
         if not (check_structured(extractions) and check_structured(groundtruth)):
-            raise TypeError(
-                "Structured extractions should be used as input for this evaluation method."
+            print(
+                "Structured extractions should be used as input for this evaluation method.",
+                "Skipping He's evaluation..."
                 )
+            return
         if not extractions and not groundtruth:
             num_ok = num_extractions = num_recalled = num_gt = 1
         else:

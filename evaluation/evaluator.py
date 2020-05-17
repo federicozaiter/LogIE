@@ -28,9 +28,9 @@ class BaseEvaluator(ABC):
     def metrics(self):
         if self.num_extractions == 0  or self.num_gt == 0:
             print("Run a single evaluation first before getting metrics.")
-            return None
-        precision = self.num_ok / self.num_extractions
-        recall = self.num_recalled / self.num_gt
+            return {}
+        precision = self.num_ok / self.num_extractions if self.num_extractions > 0 else 0
+        recall = self.num_recalled / self.num_gt if self.num_gt > 0 else 0
         f1 = 2 * (precision * recall) / (precision + recall) if precision * recall > 0 else 0
         f2 = 5 * (precision * recall) / (4 * precision + recall) if precision * recall > 0 else 0
         return {'Precision':precision, 'Recall':recall, 'F1':f1, 'F2':f2}

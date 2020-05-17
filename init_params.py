@@ -140,7 +140,10 @@ def parse_main_args(args):
     params['id_dir'] = os.path.join(
             params['base_dir'],
             '_'.join((
-                experiment_name, params['log_type'], params['id']
+                experiment_name,
+                params['log_type'],
+                params['openie'],
+                params['id']
                 ))
         )
     params['results_dir'] = os.path.join(params['id_dir'], "results")
