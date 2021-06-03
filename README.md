@@ -1,4 +1,7 @@
 # LogIE
+This repository provides an open-source toolkit for the LogIE framework which is part of LogSummary as proposed by Meng et al. in "[Summarizing Unstructured Logs in Online Services](https://arxiv.org/abs/2012.08938)."
+
+LogIE accurately and efficiently extracts information from logs in online services in the form of OpenIE triples by combining template matching with information extraction approaches.
 
 ### Requirements
 
